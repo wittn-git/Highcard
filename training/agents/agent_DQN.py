@@ -8,4 +8,5 @@ from prettytable import PrettyTable
 
 class DQNAgent:
 
-    pass
+    def __init__(self, starting_cards : List[Card]):
+        super().__init__(starting_cards)

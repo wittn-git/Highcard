@@ -1,7 +1,7 @@
-from util.playing import play_rounds, play_round
-from util.strategies import random_strategy, highest_card_strategy
 from util.classes import Card
 from agents.agent_PI import TabularAgent
+from util.playing import play_rounds, play_round
+from util.strategies import random_strategy, highest_card_strategy
 
 import random
 

@@ -1,10 +1,9 @@
 from util.classes import Card, GameHistory, Player
+from agents.agent import Agent
 from util.playing import play_round
 from util.helpers import is_terminal, get_reward, get_actions, get_states
-from agents.agent import Agent
 
-from typing import List, Tuple, Callable
-from itertools import product
+from typing import List, Callable
 from prettytable import PrettyTable
 import random
 
