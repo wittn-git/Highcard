@@ -1,12 +1,14 @@
-from util.classes import Card, GameHistory, Player
-from agents.agent import Agent
+from util.classes import Card, GameHistory, Player, State
+from agents.agent import Agent, register_agent
 from util.playing import play_round
 from util.helpers import is_terminal, get_reward, get_actions, get_states
 
-from typing import List, Callable
+from typing import List, Callable, Type
 from prettytable import PrettyTable
 import random
+import ast
 
+@register_agent
 class TabularAgent(Agent):
 
     def __init__(self, starting_cards : List[Card]):
@@ -18,6 +20,28 @@ class TabularAgent(Agent):
         state = game_history.get_state()
         action = self.get_greedy_action(state)
         return action
+    
+    def _serialize(self):
+        return {
+                    "q": {
+                        str(([card.value for card in state.get_cards(0)] + [card.value for card in state.get_cards(1)], action.value)): value
+                        for (state, action), value in self.q.items()
+                    },
+                    "starting_cards": [c.value for c in self.starting_cards]
+            }
+
+    @classmethod
+    def _deserialize(cls : Type[Agent], payload : dict):
+        starting_cards = [Card(c) for c in payload["starting_cards"]]
+        agent = cls(starting_cards)
+        agent.q = {}
+        for key, value in payload["q"].items():
+            card_values, action_value = ast.literal_eval(key)
+            p0_cards, p1_cards = tuple(Card(c) for c in card_values[:len(card_values)//2]), tuple(Card(c) for c in card_values[len(card_values)//2:])
+            state = State(p0_cards, p1_cards)
+            action = Card(action_value)
+            agent.q[(state, action)] = value
+        return agent
 
     def play_eps_greedy(self, game_history: GameHistory, epsilon: float) -> Card:
         if random.random() < epsilon:
