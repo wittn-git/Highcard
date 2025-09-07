@@ -1,6 +1,6 @@
-from torch import nn
 import torch
-import numpy as np
+import torch.nn as nn
+import torch.optim as optim
 
 class NeuralNetwork(nn.Module):
 
@@ -13,6 +13,15 @@ class NeuralNetwork(nn.Module):
             activation(),
             nn.Linear(hidden_sizes[1], output_shape)
         )
+        self.loss_fn = nn.MSELoss()
 
     def forward(self, input: torch.Tensor):
         return self.net(input)
+
+    def train_step(self, input: torch.Tensor, target: torch.Tensor, learning_rate: float):
+        optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        prediction = self.forward(input).squeeze()
+        loss = self.loss_fn(prediction, target)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()

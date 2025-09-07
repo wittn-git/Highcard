@@ -106,17 +106,13 @@ class Player:
 
     def __init__(self, id: int, starting_cards : List[Card], play_func: Callable[["Player", GameHistory], Card]):
         self.id = id
-        self.starting_cards = starting_cards
-        self.cards = copy.deepcopy(starting_cards)
+        self.cards = starting_cards
         self._play_func = play_func
     
     def play(self, game_history: GameHistory) -> Card:
         selected_card = self._play_func(self, game_history)
         self.cards.remove(selected_card)
         return selected_card
-
-    def reset(self):
-        self.cards = copy.deepcopy(self.starting_cards)
 
 def get_states(cards : List[Card]) -> List[State]:
     

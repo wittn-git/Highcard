@@ -3,15 +3,15 @@ from util.playing import play_trick
 from util.neural_nets import NeuralNetwork
 from util.replay_buffer import ReplayBuffer
 from util.helpers import is_terminal, get_reward, get_actions, get_states
-from agents.agent import Agent, register_agent
+from agents.agent import register_agent, Agent
 
-from typing import List, Tuple, Callable, Type
-from itertools import product
+from typing import List, Callable, Type
+from functools import partial
 import random
-from prettytable import PrettyTable
+import torch
 
 @register_agent
-class DQNAgent:
+class DQNAgent(Agent):
 
     def __init__(self, starting_cards : List[Card]):
         super().__init__(starting_cards)
@@ -34,15 +34,9 @@ class DQNAgent:
         agent.model.load_state_dict(payload["model_state_dict"])
         return agent
 
-    def transform_state_to_input(self, state: State) -> List[float]:
-        input = [card.value for card in state.get_cards(0)] + [card.value for card in state.get_cards(1)]
-        return input
-    
-    def transform_output_to_action(self, output: List[float], state: State) -> Card:
-        valid_actions = state.get_cards(0)
-        valid_action_indices = [card.value for card in valid_actions]
-        best_action_index = max(valid_action_indices, key=lambda idx: output[idx])
-        return Card(best_action_index)
+    def transform_state_to_input(self, state: State, action : Card) -> torch.Tensor:
+        input = [card.value for card in state.get_cards(0)] + [card.value for card in state.get_cards(1)] + [action.value]
+        return torch.tensor(input, dtype=torch.float32).unsqueeze(0)
 
     def play_eps_greedy(self, game_history: GameHistory, epsilon: float) -> Card:
         if random.random() < epsilon:
@@ -51,10 +45,18 @@ class DQNAgent:
 
     def get_greedy_action(self,  game_history: GameHistory) -> Card:
         state = game_history.get_state()
-        input = self.transform_state_to_input(state)
-        output = self.model.forward(input)
-        action = self.transform_output_to_action(output, state)
-        return action
+        actions = get_actions(self.starting_cards, state)
+        if len(actions) == 1:
+            return actions[0]
+        best_value = float('-inf')
+        best_action = actions[0]
+        for action in actions:
+            input = self.transform_state_to_input(state, action)
+            output = self.model.forward(input)
+            if output[action.value] > best_value:
+                best_value = output[action.value]
+                best_action = action
+        return best_action
 
     def train(
             self, 
@@ -63,18 +65,47 @@ class DQNAgent:
             learning_rate : float, 
             discount_factor : float, 
             replay_buffer_capacity : int,
+            update_interval : int,
+            minibatch_size : int,
             strategy : Callable[[Player, GameHistory], Card]
     ):  
+        
         game_history = GameHistory()
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
+        temp_model = NeuralNetwork(input_size=len(self.starting_cards)*2, output_size=len(self.starting_cards))
+        player = Player(id=0, starting_cards=self.starting_cards, play_func=partial(self.play_eps_greedy, epsilon=epsilon))
+        opp_player = Player(id=1, starting_cards=self.starting_cards, play_func=strategy)
+
         for t in range(epochs):
+            
+            # reset game if terminal state
             if is_terminal(self.starting_cards, game_history.get_state()):
                 game_history = GameHistory()
-            action = self.play_eps_greedy(game_history, epsilon)
-            state = game_history.get_state()
-            # add (s, a, r, s', done) to replay buffer
-            # sample minbatch from replay buffer
-            # for each element in minibatch:
-            #   compute target: if done: target = r else: target = r + discount_factor * max_a' Q(s', a') (fixed weights)
-            #   do gradient step on (target - Q(s, a))^2
-            # if t % update_steps == 0: update fixed weights
+                player.reset()
+                opp_player.reset()
+
+            # play trick and add to replay buffer
+            play_trick(player, opp_player, game_history)
+            state, next_state = game_history.get_history()[-2], game_history.get_history()[-1]
+            action = next_state.get_action(0)
+            reward = get_reward(next_state)
+            done = is_terminal(self.starting_cards, next_state)
+            replay_buffer.add((state, action, reward, next_state, done))
+
+            minibatch = replay_buffer.sample(minibatch_size)
+            for state, action, reward, next_state, done in minibatch:
+
+                # compute target
+                target = reward
+                if not done:
+                    next_state_input = self.transform_state_to_input(next_state)
+                    max_next_action_value = temp_model.forward(next_state_input)
+                    target += discount_factor * max_next_action_value
+
+                # update target network
+                input = self.transform_state_to_input(state)
+                self.model.train(input, torch.tensor([target], dtype=torch.float32), learning_rate)
+
+            # update behaviour network
+            if t % update_interval == 0:
+                temp_model.load_state_dict(self.model.state_dict())

@@ -1,5 +1,6 @@
 from util.classes import Card
 from agents.agent_PI import TabularAgent
+from agents.agent_DQN import DQNAgent
 from util.playing import play_rounds, play_round
 from util.strategies import random_strategy, highest_card_strategy
 
@@ -16,7 +17,20 @@ if __name__ == "__main__":
     # agent = TabularAgent(starting_cards)
     # agent.train(epochs=epochs, epsilon=0.1, learning_rate=learning_rate, discount_factor=discount_factor, strategy=adversarial_strategy)
     # agent.export_agent("models/tabular_agent.json")
-    agent = TabularAgent.import_agent("models/tabular_agent.json")
+    # agent = TabularAgent.import_agent("models/tabular_agent.json")
+    # strategy = agent.get_strategy()
+
+    agent = DQNAgent(starting_cards)
+    agent.train(
+        epochs=epochs, 
+        epsilon=0.1, 
+        learning_rate=learning_rate, 
+        discount_factor=discount_factor, 
+        replay_buffer_capacity=1000,
+        update_interval=10,
+        minibatch_size=32,
+        strategy=adversarial_strategy
+    )
     strategy = agent.get_strategy()
     
     results = play_rounds(n_rounds, starting_cards, strategy, adversarial_strategy)
