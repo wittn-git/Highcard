@@ -17,8 +17,7 @@ class TabularAgent(Agent):
         self.q = {(s, a): 0 for s in states for a in get_actions(starting_cards, s)}
     
     def play(self, game_history: GameHistory):
-        state = game_history.get_state()
-        action = self.get_greedy_action(state)
+        action = self.get_greedy_action(game_history)
         return action
     
     def _serialize(self):
@@ -31,7 +30,7 @@ class TabularAgent(Agent):
             }
 
     @classmethod
-    def _deserialize(cls : Type[Agent], payload : dict):
+    def _deserialize(cls : Type["TabularAgent"], payload : dict):
         starting_cards = [Card(c) for c in payload["starting_cards"]]
         agent = cls(starting_cards)
         agent.q = {}
@@ -46,8 +45,7 @@ class TabularAgent(Agent):
     def play_eps_greedy(self, game_history: GameHistory, epsilon: float) -> Card:
         if random.random() < epsilon:
             return random.choice(get_actions(self.starting_cards, game_history.get_state()))
-        state = game_history.get_state()
-        return self.get_greedy_action(state)
+        return self.get_greedy_action(game_history)
 
     def train(
             self, 
@@ -71,8 +69,9 @@ class TabularAgent(Agent):
                     next_state_value = self.q[(next_state, next_action)]
                 reward = get_reward(next_state)
                 self.q[(state, action)] += learning_rate * (reward + discount_factor * next_state_value - self.q[(state, action)])
-    
-    def get_greedy_action(self, state):
+
+    def get_greedy_action(self, game_history: GameHistory):
+        state = game_history.get_state()
         actions = get_actions(self.starting_cards, state)
         q_values = [self.q[(state, a)] for a in actions]
         max_q = max(q_values)

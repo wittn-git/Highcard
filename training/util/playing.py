@@ -3,6 +3,13 @@ from util.classes import Player, Card, GameHistory
 from typing import Callable, List
 import copy
 
+def play_trick(player_1 : Player, player_2 : Player, game_history : GameHistory, show: bool = False):
+    card_1 = player_1.play(game_history)
+    card_2 = player_2.play(game_history)
+    if show:
+        print(card_1, card_2)
+    game_history.add_record(card_1, card_2)
+
 def play_round(
         starting_cards : List[Card], 
         strategy_1 : Callable[[Player, GameHistory], Card], 
@@ -15,12 +22,8 @@ def play_round(
     game_history = GameHistory()
 
     for _ in range(len(starting_cards)):
-        card_1 = player_1.play(game_history)
-        card_2 = player_2.play(game_history)
-        if show:
-            print(card_1, card_2)
-        game_history.add_record(card_1, card_2)
-
+        play_trick(player_1, player_2, game_history, show)
+        
     return game_history
 
 def play_rounds(

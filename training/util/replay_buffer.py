@@ -8,10 +8,10 @@ class ReplayBuffer:
         self.capacity = capacity
         self.buffer = []
 
-    def push(self, state : State, action : Card, reward : float, next_state : State):
+    def push(self, state : State, action : Card, reward : float, next_state : State, done : bool):
         while len(self.buffer) >= self.capacity:
             self.buffer.pop(0)
-        self.buffer.append((state, action, reward, next_state))
+        self.buffer.append((state, action, reward, next_state, done))
 
     def sample(self, batch_size: int):
         return random.sample(self.buffer, batch_size)
