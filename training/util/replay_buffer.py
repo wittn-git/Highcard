@@ -14,4 +14,6 @@ class ReplayBuffer:
         self.buffer.append((state, action, reward, next_state, done))
 
     def sample(self, batch_size: int):
+        if batch_size > len(self.buffer):
+            return random.sample(self.buffer, len(self.buffer))
         return random.sample(self.buffer, batch_size)

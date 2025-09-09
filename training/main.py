@@ -8,14 +8,20 @@ import random
 
 if __name__ == "__main__":
 
-    starting_cards = [Card(i) for i in range(0, 5)]
+    starting_cards = [Card(i) for i in range(0, 3)]
     n_rounds = 100
     adversarial_strategy = highest_card_strategy
-    epochs, learning_rate, discount_factor = 10000, 0.1, 0.9
+    epochs, learning_rate, discount_factor = 1000, 0.1, 0.9
 
     random.seed(42)
     # agent = TabularAgent(starting_cards)
-    # agent.train(epochs=epochs, epsilon=0.1, learning_rate=learning_rate, discount_factor=discount_factor, strategy=adversarial_strategy)
+    # agent.train(
+    #   epochs=epochs, 
+    #   epsilon=0.1, 
+    #   learning_rate=learning_rate, 
+    #   discount_factor=discount_factor, 
+    #   strategy=adversarial_strategy
+    # )
     # agent.export_agent("models/tabular_agent.json")
     # agent = TabularAgent.import_agent("models/tabular_agent.json")
     # strategy = agent.get_strategy()
@@ -31,6 +37,8 @@ if __name__ == "__main__":
         minibatch_size=32,
         strategy=adversarial_strategy
     )
+    agent.print_q()
+    agent.export_agent("models/dqn_agent.json")
     strategy = agent.get_strategy()
     
     results = play_rounds(n_rounds, starting_cards, strategy, adversarial_strategy)

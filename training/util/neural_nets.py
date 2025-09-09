@@ -20,7 +20,8 @@ class NeuralNetwork(nn.Module):
 
     def train_step(self, input: torch.Tensor, target: torch.Tensor, learning_rate: float):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-        prediction = self.forward(input).squeeze()
+        prediction = self.forward(input)
+        target = target.detach()
         loss = self.loss_fn(prediction, target)
         optimizer.zero_grad()
         loss.backward()
