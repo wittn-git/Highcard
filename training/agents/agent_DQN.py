@@ -7,39 +7,46 @@ from agents.agent import register_agent, Agent
 
 from typing import List, Callable, Type
 from prettytable import PrettyTable
+import numpy as np
 import random
 import torch
 
 @register_agent
 class DQNAgent(Agent):
 
-    def __init__(self, starting_cards : List[Card]):
+    def __init__(self, starting_cards : List[Card], hidden_sizes : tuple[int, int]):
         super().__init__(starting_cards)
-        self.model = NeuralNetwork(input_shape=len(starting_cards)*3, output_shape=1)
+        self.model = NeuralNetwork(input_shape=len(starting_cards)*2, output_shape=len(starting_cards), hidden_sizes=hidden_sizes)
+        self.hidden_sizes = hidden_sizes
 
     def play(self, game_history: GameHistory):
         action = self.get_greedy_action(game_history)
         return action
     
     def _serialize(self):
+        # Convert tensor values to lists for JSON serialization
+        state_dict = self.model.state_dict()
+        serializable_state_dict = {k: v.tolist() for k, v in state_dict.items()}
         return {
-                    "model_state_dict": self.model.state_dict(),
-                    "starting_cards": [c.value for c in self.starting_cards]
+                    "model_state_dict": serializable_state_dict,
+                    "starting_cards": [c.value for c in self.starting_cards],
+                    "hidden_sizes": self.hidden_sizes
             }
 
     @classmethod
     def _deserialize(cls : Type["DQNAgent"], payload : dict):
         starting_cards = [Card(c) for c in payload["starting_cards"]]
-        agent = cls(starting_cards)
-        agent.model.load_state_dict(payload["model_state_dict"])
+        hidden_sizes = payload["hidden_sizes"]
+        agent = cls(starting_cards, hidden_sizes)
+        state_dict = {k: torch.tensor(v) for k, v in payload["model_state_dict"].items()}
+        agent.model.load_state_dict(state_dict)
         return agent
 
-    def transform_state_to_input(self, state: State, action : Card) -> torch.Tensor:
+    def transform_state_to_input(self, state: State) -> torch.Tensor:
         player_0_cards, player_1_cards = state.get_cards(0), state.get_cards(1)
         p0_encoding = [1 if card in player_0_cards else 0 for card in self.starting_cards]
         p1_encoding = [1 if card in player_1_cards else 0 for card in self.starting_cards]
-        action_encoding = [1 if card == action else 0 for card in self.starting_cards]
-        input = p0_encoding + p1_encoding + action_encoding
+        input = p0_encoding + p1_encoding
         return torch.tensor(input, dtype=torch.float32).unsqueeze(0)
 
     def play_eps_greedy(self, game_history: GameHistory, epsilon: float) -> Card:
@@ -49,19 +56,19 @@ class DQNAgent(Agent):
 
     def get_greedy_action(self,  game_history: GameHistory) -> Card:
         state = game_history.get_state()
+        input = self.transform_state_to_input(state)
+        q_values = self.model.apply(input)
+        return self.get_best_action(state, q_values)[0]
+    
+    def get_action_index(self, action: Card) -> int:
+        return self.starting_cards.index(action)
+    
+    def get_best_action(self, state : State, q_values : np.ndarray) -> Card:
         actions = get_actions(self.starting_cards, state)
-        if len(actions) == 1:
-            return actions[0]
-        best_value = float('-inf')
-        best_action = actions[0]
-        for action in actions:
-            input = self.transform_state_to_input(state, action)
-            output = self.model.forward(input)
-            q_value = output.item()
-            if q_value > best_value:
-                best_value = q_value
-                best_action = action
-        return best_action
+        action_q_values = {a: q_values[self.get_action_index(a)] for a in actions}
+        max_q = max(action_q_values.values())
+        max_actions = [a for a, q in action_q_values.items() if q == max_q]
+        return random.choice(max_actions), max_q
 
     def train(
             self, 
@@ -77,7 +84,7 @@ class DQNAgent(Agent):
         
         game_history = GameHistory()
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
-        temp_model = NeuralNetwork(input_shape=len(self.starting_cards)*3, output_shape=1)
+        temp_model = NeuralNetwork(input_shape=len(self.starting_cards)*2, output_shape=len(self.starting_cards), hidden_sizes=self.hidden_sizes)
         
         def agent_strategy(player: Player, game_history: GameHistory) -> Card:
             return self.play_eps_greedy(game_history, epsilon)
@@ -108,17 +115,15 @@ class DQNAgent(Agent):
                 # compute target
                 target = reward
                 if not done:
-                    max_next_action_value = 0
-                    for action in get_actions(self.starting_cards, next_state):
-                        next_state_input = self.transform_state_to_input(next_state, action)
-                        next_action_value = temp_model.forward(next_state_input).item()
-                        if next_action_value > max_next_action_value:
-                            max_next_action_value = next_action_value
+                    q_values_next = temp_model.apply(self.transform_state_to_input(next_state))
+                    _, max_next_action_value = self.get_best_action(next_state, q_values_next)
                     target += discount_factor * max_next_action_value
-
+                    
                 # update target network
-                input = self.transform_state_to_input(state, action)
-                target_tensor = torch.tensor([[target]], dtype=torch.float32)  # Shape [1, 1] to match network output
+                input = self.transform_state_to_input(state)
+                q_values = self.model.apply(input)
+                q_values[self.get_action_index(action)] = target
+                target_tensor = torch.from_numpy(q_values).float().unsqueeze(0)
                 self.model.train_step(input, target_tensor, learning_rate)
 
             # update behaviour network
@@ -128,10 +133,13 @@ class DQNAgent(Agent):
     def print_q(self):
         table = PrettyTable()
         table.field_names = ["State", "Action", "Q-Value"]
-        table.align = "l"
+        table.align["State"] = "l"
+        table.align["Action"] = "c"  
+        table.align["Q-Value"] = "r" 
         for state in get_states(self.starting_cards):
-            for action in get_actions(self.starting_cards, state):
-                input = self.transform_state_to_input(state, action)
-                q_value = self.model.forward(input).item()
-                table.add_row([state, action, q_value])
+            q_values = self.model.apply(self.transform_state_to_input(state))
+            actions = get_actions(self.starting_cards, state)
+            for action in actions:
+                q_value = q_values[self.get_action_index(action)]
+                table.add_row([state, action, f"{q_value:.3f}"])
         print(table)

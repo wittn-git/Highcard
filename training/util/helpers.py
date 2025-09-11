@@ -16,8 +16,9 @@ def get_reward(state: Tuple[Tuple[Card, Card]]) -> float:
 
 def get_actions(starting_cards : List[Card], state: State) -> List[Card]:
     playable_cards = starting_cards.copy()
-    for card in state.get_cards(0):
-        if card in playable_cards:
+    played_cards = state.get_cards(0)
+    for card in starting_cards:
+        if card in played_cards:
             playable_cards.remove(card)
     return playable_cards
 

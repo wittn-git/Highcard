@@ -15,7 +15,7 @@ class TabularAgent(Agent):
         super().__init__(starting_cards)
         states = get_states(starting_cards)
         self.q = {(s, a): 0 for s in states for a in get_actions(starting_cards, s)}
-    
+
     def play(self, game_history: GameHistory):
         action = self.get_greedy_action(game_history)
         return action
@@ -55,7 +55,8 @@ class TabularAgent(Agent):
             discount_factor : float, 
             strategy : Callable[[Player, GameHistory], Card]
     ):
-        for _ in range(epochs):
+        for t in range(epochs):
+            print(f"Epoch {t+1}/{epochs}", end="\r")
             def agent_strategy(player: Player, game_history: GameHistory) -> Card:
                 return self.play_eps_greedy(game_history, epsilon)
             game_history = play_round(self.starting_cards, agent_strategy, strategy)
@@ -81,7 +82,9 @@ class TabularAgent(Agent):
     def print_q(self):
         table = PrettyTable()
         table.field_names = ["State", "Action", "Q-Value"]
-        table.align = "l"
-        for ((s, a), val) in self.q.items():
-            table.add_row([s, a, val])
+        table.align["State"] = "l"
+        table.align["Action"] = "c"  
+        table.align["Q-Value"] = "r" 
+        for ((state, action), val) in self.q.items():
+            table.add_row([state, action, f"{val:.3f}"])
         print(table)

@@ -17,6 +17,10 @@ class NeuralNetwork(nn.Module):
 
     def forward(self, input: torch.Tensor):
         return self.net(input)
+    
+    def apply(self, input : torch.Tensor):
+        with torch.no_grad():
+            return self.forward(input).detach().numpy().flatten()
 
     def train_step(self, input: torch.Tensor, target: torch.Tensor, learning_rate: float):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
