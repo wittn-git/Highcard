@@ -1,5 +1,8 @@
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
+  id: { type: Number, required: true },
   sign: { type: String, default: "" },
   suit: { type: String, default: "" },
   back: { type: Boolean, default: false },
@@ -15,17 +18,19 @@ const suitSymbol = (suit) => {
     default: return ""
   }
 }
+
+const suitIcon = computed(() => suitSymbol(props.suit))
 </script>
 
 <template>
   <div
     class="card"
-    :class="[suit, { back, hoverable }]"
+    :class="['card--' + props.suit, { 'card--back': back, 'card--hoverable': hoverable }]"
   >
     <template v-if="!back">
-      <div class="card-sign top">{{ sign }}{{ suitSymbol(suit) }}</div>
-      <div class="card-suit">{{ suitSymbol(suit) }}</div>
-      <div class="card-sign bottom">{{ sign }}{{ suitSymbol(suit) }}</div>
+      <div class="card-sign card-sign--top">{{ sign }}{{ suitIcon }}</div>
+      <div class="card-suit">{{ suitIcon }}</div>
+      <div class="card-sign card-sign--bottom">{{ sign }}{{ suitIcon }}</div>
     </template>
     <template v-else>
       <div class="card-back-pattern"></div>
@@ -46,10 +51,10 @@ const suitSymbol = (suit) => {
   justify-content: space-between;
   padding: 8px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card.back {
+.card--back {
   background: #FF0000;
   border: 4px solid white;
   outline: 3px solid #FF0000;
@@ -75,8 +80,9 @@ const suitSymbol = (suit) => {
   background-position: center;
 }
 
-.hoverable:hover {
-  transform: translateY(-10px);
+.card--hoverable:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
 }
 
 .card-sign {
@@ -84,11 +90,11 @@ const suitSymbol = (suit) => {
   font-weight: bold;
 }
 
-.card-sign.top {
+.card-sign--top {
   align-self: flex-start;
 }
 
-.card-sign.bottom {
+.card-sign--bottom {
   align-self: flex-end;
   transform: rotate(180deg);
 }
@@ -98,12 +104,11 @@ const suitSymbol = (suit) => {
   text-align: center;
 }
 
-.hearts, .diamonds {
+.card--hearts, .card--diamonds {
   color: red;
 }
 
-.spades, .clubs {
+.card--spades, .card--clubs {
   color: black;
 }
-
 </style>
