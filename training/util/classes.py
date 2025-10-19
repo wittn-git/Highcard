@@ -110,8 +110,8 @@ class Player:
         self.cards = copy.deepcopy(starting_cards)
         self._play_func = play_func
     
-    def play(self, game_history: GameHistory) -> Card:
-        selected_card = self._play_func(self, game_history)
+    def play(self, game_history: GameHistory, args : dict) -> Card:
+        selected_card = self._play_func(self, game_history, args)
         self.cards.remove(selected_card)
         return selected_card
 

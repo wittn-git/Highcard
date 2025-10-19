@@ -19,7 +19,7 @@ class DQNAgent(Agent):
         self.model = NeuralNetwork(input_shape=len(starting_cards)*2, output_shape=len(starting_cards), hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
 
-    def play(self, game_history: GameHistory):
+    def play(self, game_history: GameHistory, args : dict):
         action = self.get_greedy_action(game_history)
         return action
     
@@ -86,7 +86,7 @@ class DQNAgent(Agent):
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
         temp_model = NeuralNetwork(input_shape=len(self.starting_cards)*2, output_shape=len(self.starting_cards), hidden_sizes=self.hidden_sizes)
         
-        def agent_strategy(player: Player, game_history: GameHistory) -> Card:
+        def agent_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
             return self.play_eps_greedy(game_history, epsilon)
         
         player = Player(id=0, starting_cards=self.starting_cards, play_func=agent_strategy)
@@ -102,7 +102,7 @@ class DQNAgent(Agent):
                 opp_player.reset()
 
             # play trick and add to replay buffer
-            play_trick(player, opp_player, game_history)
+            play_trick(player, opp_player, game_history, t)
             state, next_state = game_history.get_history()[-2], game_history.get_history()[-1]
             action = next_state.get_action(0)
             reward = get_reward(next_state)

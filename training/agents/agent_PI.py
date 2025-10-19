@@ -16,7 +16,7 @@ class TabularAgent(Agent):
         states = get_states(starting_cards)
         self.q = {(s, a): 0 for s in states for a in get_actions(starting_cards, s)}
 
-    def play(self, game_history: GameHistory):
+    def play(self, game_history: GameHistory, args : dict):
         action = self.get_greedy_action(game_history)
         return action
     
@@ -57,22 +57,25 @@ class TabularAgent(Agent):
     ):
         for t in range(epochs):
             print(f"Epoch {t+1}/{epochs}", end="\r")
-            def agent_strategy(player: Player, game_history: GameHistory) -> Card:
+            def agent_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
                 return self.play_eps_greedy(game_history, epsilon)
-            game_history = play_round(self.starting_cards, agent_strategy, strategy)
+            game_history = play_round(self.starting_cards, agent_strategy, strategy, t)
             trajectory = game_history.get_history()
             for i in range(len(trajectory)-1):
                 state, next_state = trajectory[i], trajectory[i+1]
                 action = next_state.get_action(0)
                 next_state_value = 0
                 if not is_terminal(self.starting_cards, next_state):
-                    next_action = self.get_greedy_action(next_state)
+                    next_action = self.get_greedy_action_by_state(next_state)
                     next_state_value = self.q[(next_state, next_action)]
                 reward = get_reward(next_state)
                 self.q[(state, action)] += learning_rate * (reward + discount_factor * next_state_value - self.q[(state, action)])
 
     def get_greedy_action(self, game_history: GameHistory):
         state = game_history.get_state()
+        return self.get_greedy_action_by_state(state)
+    
+    def get_greedy_action_by_state(self, state: State):
         actions = get_actions(self.starting_cards, state)
         q_values = [self.q[(state, a)] for a in actions]
         max_q = max(q_values)
