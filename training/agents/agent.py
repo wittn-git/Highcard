@@ -19,30 +19,30 @@ class Agent(ABC):
         strategy = lambda player, game_history, args: self.play(game_history, args)
         return strategy
     
-    def export_agent(self, file_path: str):
+    def export_agent(self, file_path: str, params : dict):
         data = {
             "class": self.__class__.__name__,
-            "payload": self._serialize()
+            "payload": self._serialize(params)
         }
         with open(file_path, "w") as f:
             json.dump(data, f)
 
     @classmethod
-    def import_agent(cls, file_path: str, starting_cards : list[Card]):
+    def import_agent(cls, file_path: str, starting_cards : list[Card]) -> tuple["Agent", dict]:
         with open(file_path, "r") as f:
             data = json.load(f)
         agent_class = _AGENT_REGISTRY[data["class"]]
-        agent = agent_class._deserialize(data["payload"])
+        agent, params = agent_class._deserialize(data["payload"])
         assert agent.starting_cards == starting_cards, "Passed starting cards to no matched the agents."
-        return agent
+        return agent, params
     
     @abstractmethod
-    def _serialize(self) -> dict:
+    def _serialize(self, params : dict) -> dict:
         pass
 
     @classmethod
     @abstractmethod
-    def _deserialize(cls : Type["Agent"], payload : dict):
+    def _deserialize(cls : Type["Agent"], payload : dict) -> tuple["Agent", dict]:
         pass
 
     @abstractmethod

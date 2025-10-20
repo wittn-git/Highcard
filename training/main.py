@@ -9,6 +9,7 @@ from typing import Callable
 import random
 import numpy as np
 import torch
+import time
 
 def seed(seed_value: int):
     random.seed(seed_value)
@@ -18,56 +19,76 @@ def seed(seed_value: int):
 def get_file_name(agent : Agent, adversarial_strategy : Callable, starting_cards : list[Card]) -> str:
     strategy_name = adversarial_strategy.__name__.replace("_", "-")
     agent_type = type(agent).__name__
-    file_name = f"models/{agent_type.lower()}_{strategy_name.lower()}_{str(len(starting_cards))}.json"
+    file_name = f"models/{agent_type.lower()}_{strategy_name.lower()}_{str(len(starting_cards))}_{time.time()}.json"
     return file_name
+
+def get_agent():
+    ## Training Tabular Agent
+    # params_tabular = {
+    #     "epochs": 5000,
+    #     "learning_rate": 0.1,
+    #     "discount_factor": 1,
+    #     "epsilon": 0.1
+    # }
+    # agent = TabularAgent(starting_cards)
+    # agent.train(
+    #    epochs=params_tabular["epochs"],
+    #    epsilon=params_tabular["epsilon"],
+    #    learning_rate=params_tabular["learning_rate"], 
+    #    discount_factor=params_tabular["discount_factor"], 
+    #    strategy=adversarial_strategy
+    # )
+    # agent.export_agent(get_file_name(agent, adversarial_strategy, starting_cards, params_tabular))
+
+    # Import Tabular Agent
+    # agent, _ = TabularAgent.import_agent("models/XXX", starting_cards)
+
+    # Training DQN Agent
+    params_dqn = {
+        "epochs": 5000,
+        "learning_rate": 0.25,
+        "discount_factor": 1,
+        "epsilon": 0.1,
+        "replay_buffer_capacity": 64,
+        "update_interval": 20,
+        "minibatch_size": 32,
+        "hidden_sizes": (32, 32)
+    }
+    agent = DQNAgent(starting_cards, hidden_sizes=params_dqn["hidden_sizes"])
+    agent.train(
+        epochs=params_dqn["epochs"], 
+        epsilon=params_dqn["epsilon"], 
+        learning_rate=params_dqn["learning_rate"], 
+        discount_factor=params_dqn["discount_factor"], 
+        replay_buffer_capacity=params_dqn["replay_buffer_capacity"],
+        update_interval=params_dqn["update_interval"],
+        minibatch_size=params_dqn["minibatch_size"],
+        strategy=adversarial_strategy
+    )
+    agent.print_q()
+    agent.export_agent(get_file_name(agent, adversarial_strategy, starting_cards), params_dqn)
+
+    # Import DQN Agent
+    # agent, _ = DQNAgent.import_agent("models/XXX", starting_cards)
+
+    return agent
 
 if __name__ == "__main__":
 
     seed(43)
 
-    starting_cards = [Card(i) for i in range(0, 5)]
-    n_rounds = 100
+    starting_cards = [Card(i) for i in range(0, 3)]
+    evaluation_rounds = 100
     adversarial_strategy = fixed_pool_strategy
-    epochs, learning_rate, discount_factor = 5000, 0.1, 1
-
-    ## Training Tabular Agent
-    # agent = TabularAgent(starting_cards)
-    # agent.train(
-    #    epochs=epochs,
-    #    epsilon=0.1,
-    #    learning_rate=learning_rate,
-    #    discount_factor=discount_factor,
-    #    strategy=adversarial_strategy
-    # )
-    # agent.export_agent(get_file_name(agent, adversarial_strategy, starting_cards))
-
-    # Import Tabular Agent
-    agent = TabularAgent.import_agent("models/tabularagent_fixed-pool-strategy_5.json", starting_cards)
-
-    # Training DQN Agent
-    # agent = DQNAgent(starting_cards, hidden_sizes=(16, 16))
-    # agent.train(
-    #     epochs=epochs, 
-    #     epsilon=0.1, 
-    #     learning_rate=learning_rate, 
-    #     discount_factor=discount_factor, 
-    #     replay_buffer_capacity=64,
-    #     update_interval=20,
-    #     minibatch_size=32,
-    #     strategy=adversarial_strategy
-    # )
-    # agent.print_q()
-    # agent.export_agent("models/dqn_agent.json")
-
-    # Import DQN Agent
-    # agent = DQNAgent.import_agent("models/dqn-agent_highest_5.json", starting_cards)
-
+    
+    agent = get_agent()
     strategy = agent.get_strategy()
-    results = play_rounds(n_rounds, starting_cards, strategy, adversarial_strategy)
+
+    results = play_rounds(evaluation_rounds, starting_cards, strategy, adversarial_strategy)
     play_round(starting_cards, strategy, adversarial_strategy, True)
 
     print("-------------------------------")
-    print("Results after", n_rounds, "rounds:")
+    print("Results after", evaluation_rounds, "rounds:")
     print("Player 1 wins:", results[0])
     print("Player 2 wins:", results[1])
     print("Draws:", results[2])

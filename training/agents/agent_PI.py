@@ -20,18 +20,20 @@ class TabularAgent(Agent):
         action = self.get_greedy_action(game_history)
         return action
     
-    def _serialize(self):
+    def _serialize(self, params : dict):
         return {
                     "q": {
                         str(([card.value for card in state.get_cards(0)] + [card.value for card in state.get_cards(1)], action.value)): value
                         for (state, action), value in self.q.items()
                     },
-                    "starting_cards": [c.value for c in self.starting_cards]
+                    "starting_cards": [c.value for c in self.starting_cards],
+                    "params": params
             }
 
     @classmethod
-    def _deserialize(cls : Type["TabularAgent"], payload : dict):
+    def _deserialize(cls : Type["TabularAgent"], payload : dict) -> tuple["Agent", dict]:
         starting_cards = [Card(c) for c in payload["starting_cards"]]
+        params = payload.get("params", {})
         agent = cls(starting_cards)
         agent.q = {}
         for key, value in payload["q"].items():
@@ -40,7 +42,7 @@ class TabularAgent(Agent):
             state = State(p0_cards, p1_cards)
             action = Card(action_value)
             agent.q[(state, action)] = value
-        return agent
+        return agent, params
 
     def play_eps_greedy(self, game_history: GameHistory, epsilon: float) -> Card:
         if random.random() < epsilon:

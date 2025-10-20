@@ -23,24 +23,26 @@ class DQNAgent(Agent):
         action = self.get_greedy_action(game_history)
         return action
     
-    def _serialize(self):
+    def _serialize(self, params : dict):
         # Convert tensor values to lists for JSON serialization
         state_dict = self.model.state_dict()
         serializable_state_dict = {k: v.tolist() for k, v in state_dict.items()}
         return {
                     "model_state_dict": serializable_state_dict,
                     "starting_cards": [c.value for c in self.starting_cards],
-                    "hidden_sizes": self.hidden_sizes
+                    "hidden_sizes": self.hidden_sizes,
+                    "params": params
             }
 
     @classmethod
-    def _deserialize(cls : Type["DQNAgent"], payload : dict):
+    def _deserialize(cls : Type["DQNAgent"], payload : dict) -> tuple["Agent", dict]:
         starting_cards = [Card(c) for c in payload["starting_cards"]]
         hidden_sizes = payload["hidden_sizes"]
+        params = payload.get("params", {})
         agent = cls(starting_cards, hidden_sizes)
         state_dict = {k: torch.tensor(v) for k, v in payload["model_state_dict"].items()}
         agent.model.load_state_dict(state_dict)
-        return agent
+        return agent, params
 
     def transform_state_to_input(self, state: State) -> torch.Tensor:
         player_0_cards, player_1_cards = state.get_cards(0), state.get_cards(1)
@@ -92,6 +94,7 @@ class DQNAgent(Agent):
         player = Player(id=0, starting_cards=self.starting_cards, play_func=agent_strategy)
         opp_player = Player(id=1, starting_cards=self.starting_cards, play_func=strategy)
 
+        round = 0
         for t in range(epochs):
             print(f"Epoch {t+1}/{epochs}", end="\r")
             
@@ -100,9 +103,10 @@ class DQNAgent(Agent):
                 game_history = GameHistory()
                 player.reset()
                 opp_player.reset()
+                round += 1
 
             # play trick and add to replay buffer
-            play_trick(player, opp_player, game_history, t)
+            play_trick(player, opp_player, game_history, round)
             state, next_state = game_history.get_history()[-2], game_history.get_history()[-1]
             action = next_state.get_action(0)
             reward = get_reward(next_state)
