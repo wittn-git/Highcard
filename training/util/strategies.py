@@ -38,4 +38,14 @@ def fixed_pool_strategy(player: Player, game_history: GameHistory, args : dict) 
     if args["round"] % 4 == 2:
         return alternating_strategy(player, game_history, args)
     return copying_strategy(player, game_history, args)
+
+def stochastic_pool_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
+    strategies = [
+        highest_strategy,
+        lowest_strategy,
+        alternating_strategy,
+        copying_strategy
+    ]
+    selected_strategy = random.choice(strategies)
+    return selected_strategy(player, game_history, args)
     
