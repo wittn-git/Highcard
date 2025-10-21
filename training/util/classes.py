@@ -32,6 +32,12 @@ class State:
         self.cards_p0 += (card_p0,)
         self.cards_p1 += (card_p1,)
     
+    def get_predecessor(self):
+        return State(self.cards_p0[:-1], self.cards_p1[:-1])
+    
+    def empty(self):
+        return len(self.cards_p0) == 0
+    
     def get_ncards(self) -> int:
         return len(self.cards_p0)
 
@@ -71,11 +77,11 @@ class State:
     
     def __repr__(self):
         if not self.cards_p0 and not self.cards_p1:
-            return "State()"
-        repr = "State("
+            return "State[]"
+        repr = "State["
         for card_p0, card_p1 in zip(self.cards_p0, self.cards_p1):
             repr += f"({card_p0}, {card_p1}), "
-        repr = repr[:-2] + ")"
+        repr = repr[:-2] + "]"
         return repr
 
     def __eq__(self, value):
@@ -92,6 +98,15 @@ class GameHistory:
         last_state = copy.deepcopy(self.history[-1])
         last_state.add_cards(card_p0, card_p1)
         self.history.append(last_state)
+    
+    def set_history(self, state : State):
+        reversed_history = []
+        new_state = state
+        while not new_state.empty():
+            reversed_history.append(new_state)
+            new_state = new_state.get_predecessor()
+        reversed_history.append(new_state)
+        self.history = reversed(reversed_history)
 
     def get_history(self) -> List[State]:
         return self.history
@@ -101,6 +116,10 @@ class GameHistory:
 
     def winner(self) -> int:
         return self.history[-1].get_game_winner()
+    
+    def __repr__(self):
+        stringed_history = [str(state) for state in self.history]
+        return f"GameHistory[{", ".join(stringed_history)}]"
 
 class Player:
 

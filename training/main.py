@@ -6,6 +6,7 @@ from util.playing import play_rounds, play_round
 from util.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
 from util.file_handling import get_file_name
 from util.seeding import seed
+from util.backwards_induction import compare_strategies
 
 def get_agent(starting_cards : list[Card]) -> Agent:
     ## Training Tabular Agent
@@ -27,7 +28,7 @@ def get_agent(starting_cards : list[Card]) -> Agent:
 
     # Import Tabular Agent
     agent, _ = TabularAgent.import_agent("models/tabularagent_fixed-pool-strategy_3_1760956078.0740678.json", starting_cards)
-    agent.print_q()
+    # agent.print_q()
 
     # Training DQN Agent
     # params_dqn = {
@@ -79,6 +80,18 @@ def run_single_evaluation():
     print("Player 2 wins:", results[1])
     print("Draws:", results[2])
 
+def compare_agent():
+    
+    seed(43)
+
+    starting_cards = [Card(i) for i in range(0, 3)]
+    adversarial_strategy = highest_strategy
+    agent = get_agent(starting_cards)
+    strategy = agent.get_strategy()
+
+    compare_strategies(starting_cards, strategy, adversarial_strategy)
+
 if __name__ == "__main__":
     pass
     # run_single_evaluation()
+    # compare_agent()
