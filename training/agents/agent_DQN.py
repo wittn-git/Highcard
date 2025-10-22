@@ -2,7 +2,7 @@ from util.classes import Card, GameHistory, Player, State
 from util.playing import play_trick
 from util.neural_nets import NeuralNetwork
 from util.replay_buffer import ReplayBuffer
-from util.helpers import is_terminal, get_reward, get_actions, get_states
+from util.helpers import get_reward, get_actions, get_states
 from agents.agent import register_agent, Agent
 
 from typing import List, Callable, Type
@@ -99,7 +99,7 @@ class DQNAgent(Agent):
             print(f"Epoch {t+1}/{epochs}", end="\r")
             
             # reset game if terminal state
-            if is_terminal(self.starting_cards, game_history.get_state()):
+            if game_history.get_state().is_terminal(self.starting_cards):
                 game_history = GameHistory()
                 player.reset()
                 opp_player.reset()
@@ -110,7 +110,7 @@ class DQNAgent(Agent):
             state, next_state = game_history.get_history()[-2], game_history.get_history()[-1]
             action = next_state.get_action(0)
             reward = get_reward(next_state)
-            done = is_terminal(self.starting_cards, next_state)
+            done = next_state.is_terminal(self.starting_cards)
             replay_buffer.push(state, action, reward, next_state, done)
 
             minibatch = replay_buffer.sample(minibatch_size)

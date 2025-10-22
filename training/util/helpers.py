@@ -3,9 +3,6 @@ from util.classes import Card, State
 from typing import Tuple, List
 from itertools import product
 
-def is_terminal(starting_cards: List[Card], state: State) -> bool:
-    return state.get_ncards() == len(starting_cards)
-
 def get_reward(state: Tuple[Tuple[Card, Card]]) -> float:
     trick_winner = state.get_trick_winner()
     if trick_winner == 0:

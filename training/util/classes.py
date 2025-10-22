@@ -35,6 +35,10 @@ class State:
     def get_predecessor(self):
         return State(self.cards_p0[:-1], self.cards_p1[:-1])
     
+    @staticmethod
+    def get_successor(state : "State", card_p0 : Card, card_p1 : Card):
+        return State(state.get_cards(0) + (card_p0, ), state.get_cards(1) + (card_p1, ))
+    
     def empty(self):
         return len(self.cards_p0) == 0
     
@@ -48,12 +52,16 @@ class State:
             return 1
         return -1
     
-    def get_game_winner(self) -> int:
+    def get_game_scores(self) -> tuple[int, int]:
         score_p0, score_p1 = 0, 0
         for i in range(len(self.cards_p0)):
             winner = self.get_trick_winner(i)
             if winner == 0: score_p0 += 1
             elif winner == 1: score_p1 += 1
+        return score_p0, score_p1
+    
+    def get_game_winner(self) -> int:
+        score_p0, score_p1 = self.get_game_scores()
         if score_p0 > score_p1: return 0
         elif score_p1 > score_p0: return 1
         return -1
@@ -65,12 +73,20 @@ class State:
             return self.cards_p1
         raise ValueError("Invalid player ID")
     
+    def get_residual_cards(self, player_id: int, startings_cards : list[Card]) -> Tuple[Card]:
+        player_card_set = set(self.get_cards(player_id))
+        starting_card_set = set(startings_cards)
+        return tuple(starting_card_set - player_card_set)
+    
     def get_action(self, player_id : int, index : int = -1) -> Card:
         if player_id == 0:
             return self.cards_p0[index]
         elif player_id == 1:
             return self.cards_p1[index]
         raise ValueError("Invalid player ID")
+    
+    def is_terminal(self, starting_cards : list[Card]):
+        return self.get_ncards() == len(starting_cards)
 
     def __hash__(self):
         return hash((self.cards_p0, self.cards_p1))
@@ -93,20 +109,20 @@ class GameHistory:
 
     def __init__(self):
         self.history = [State((), ())]
-
-    def add_record(self, card_p0 : Card, card_p1 : Card):
-        last_state = copy.deepcopy(self.history[-1])
-        last_state.add_cards(card_p0, card_p1)
-        self.history.append(last_state)
     
-    def set_history(self, state : State):
+    def __init__(self, state : State):
         reversed_history = []
         new_state = state
         while not new_state.empty():
             reversed_history.append(new_state)
             new_state = new_state.get_predecessor()
         reversed_history.append(new_state)
-        self.history = reversed(reversed_history)
+        self.history = list(reversed(reversed_history))
+
+    def add_record(self, card_p0 : Card, card_p1 : Card):
+        last_state = copy.deepcopy(self.history[-1])
+        last_state.add_cards(card_p0, card_p1)
+        self.history.append(last_state)
 
     def get_history(self) -> List[State]:
         return self.history

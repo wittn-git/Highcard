@@ -85,11 +85,11 @@ def compare_agent():
     seed(43)
 
     starting_cards = [Card(i) for i in range(0, 3)]
-    adversarial_strategy = highest_strategy
+    adversarial_strategies = [highest_strategy]
     agent = get_agent(starting_cards)
     strategy = agent.get_strategy()
 
-    compare_strategies(starting_cards, strategy, adversarial_strategy)
+    compare_strategies(starting_cards, strategy, adversarial_strategies)
 
 if __name__ == "__main__":
     pass

@@ -1,7 +1,7 @@
 from util.classes import Card, GameHistory, Player, State
 from agents.agent import Agent, register_agent
 from util.playing import play_round
-from util.helpers import is_terminal, get_reward, get_actions, get_states
+from util.helpers import get_reward, get_actions, get_states
 
 from typing import List, Callable, Type
 from prettytable import PrettyTable
@@ -67,7 +67,7 @@ class TabularAgent(Agent):
                 state, next_state = trajectory[i], trajectory[i+1]
                 action = next_state.get_action(0)
                 next_state_value = 0
-                if not is_terminal(self.starting_cards, next_state):
+                if not next_state.is_terminal(self.starting_cards):
                     next_action = self.get_greedy_action_by_state(next_state)
                     next_state_value = self.q[(next_state, next_action)]
                 reward = get_reward(next_state)
