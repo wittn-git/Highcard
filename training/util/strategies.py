@@ -1,4 +1,4 @@
-from util.classes import Player, GameHistory, Card
+from training.util.classes import Player, GameHistory, Card
 
 import random
 

@@ -1,9 +1,9 @@
-from util.classes import Card, GameHistory, Player, State
-from util.playing import play_trick
-from util.neural_nets import NeuralNetwork
-from util.replay_buffer import ReplayBuffer
-from util.helpers import get_reward, get_actions, get_states
-from agents.agent import register_agent, Agent
+from training.util.classes import Card, GameHistory, Player, State
+from training.util.playing import play_trick
+from training.util.neural_nets import NeuralNetwork
+from training.util.replay_buffer import ReplayBuffer
+from training.util.helpers import get_reward, get_actions, get_states
+from training.agents.agent import register_agent, Agent
 
 from typing import List, Callable, Type
 from prettytable import PrettyTable

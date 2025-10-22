@@ -1,4 +1,4 @@
-from util.classes import Player, Card, GameHistory
+from training.util.classes import Player, Card, GameHistory
 
 from typing import Callable, List
 import copy

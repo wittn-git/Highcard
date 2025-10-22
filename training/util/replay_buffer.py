@@ -1,4 +1,4 @@
-from util.classes import Card, State
+from training.util.classes import Card, State
 
 import random
 

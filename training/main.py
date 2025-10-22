@@ -1,12 +1,12 @@
-from util.classes import Card
-from agents.agent_PI import TabularAgent
-from agents.agent_DQN import DQNAgent
-from agents.agent import Agent
-from util.playing import play_rounds, play_round
-from util.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
-from util.file_handling import get_file_name
-from util.seeding import seed
-from util.backwards_induction import compare_strategies
+from training.util.classes import Card
+from training.agents.agent_PI import TabularAgent
+from training.agents.agent_DQN import DQNAgent
+from training.agents.agent import Agent
+from training.util.playing import play_rounds, play_round
+from training.util.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
+from training.util.file_handling import get_file_name
+from training.util.seeding import seed
+from training.util.backwards_induction import compare_strategies
 
 def get_agent(starting_cards : list[Card]) -> Agent:
     ## Training Tabular Agent

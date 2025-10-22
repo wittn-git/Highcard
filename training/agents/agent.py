@@ -1,4 +1,4 @@
-from util.classes import Card, GameHistory
+from training.util.classes import Card, GameHistory
 
 from typing import List, Type
 from abc import ABC, abstractmethod

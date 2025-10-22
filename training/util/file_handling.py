@@ -1,5 +1,5 @@
-from util.classes import Card, GameHistory, Player
-from agents.agent import Agent
+from training.util.classes import Card, GameHistory, Player
+from training.agents.agent import Agent
 
 from typing import Callable
 import time

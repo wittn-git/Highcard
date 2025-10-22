@@ -3,8 +3,8 @@ import { computed } from 'vue'
 
 const props = defineProps({
   id: { type: Number, required: true },
-  sign: { type: String, default: "" },
-  suit: { type: String, default: "" },
+  value: { type: Number, required: true },
+  suit: { type: String, required: true },
   back: { type: Boolean, default: false },
   hoverable: { type: Boolean, default: false }
 })
@@ -19,7 +19,17 @@ const suitSymbol = (suit) => {
   }
 }
 
+const signSymbol = (value) => {
+  if(value == 1) return "A"
+  if(value == 11) return "B"
+  if(value == 12) return "Q"
+  if(value == 13) return "K"
+  else return String(value)
+}
+
 const suitIcon = computed(() => suitSymbol(props.suit))
+const signIcon = computed(() => signSymbol(props.value))
+
 </script>
 
 <template>
@@ -28,9 +38,9 @@ const suitIcon = computed(() => suitSymbol(props.suit))
     :class="['card--' + props.suit, { 'card--back': back, 'card--hoverable': hoverable }]"
   >
     <template v-if="!back">
-      <div class="card-sign card-sign--top">{{ sign }}{{ suitIcon }}</div>
+      <div class="card-sign card-sign--top">{{ signIcon }}{{ suitIcon }}</div>
       <div class="card-suit">{{ suitIcon }}</div>
-      <div class="card-sign card-sign--bottom">{{ sign }}{{ suitIcon }}</div>
+      <div class="card-sign card-sign--bottom">{{ signIcon }}{{ suitIcon }}</div>
     </template>
     <template v-else>
       <div class="card-back-pattern"></div>
@@ -40,8 +50,8 @@ const suitIcon = computed(() => suitSymbol(props.suit))
 
 <style scoped>
 .card {
-  width: 100px;
-  height: 150px;
+  width: calc(20vh * 2 / 3);
+  height: 20vh;
   background: white;
   border-radius: 10px;
   border: 2px solid #333;

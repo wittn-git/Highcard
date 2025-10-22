@@ -1,5 +1,5 @@
-from util.classes import Card, GameHistory, Player, State
-from util.helpers import get_states
+from training.util.classes import Card, GameHistory, Player, State
+from training.util.helpers import get_states
 
 import math
 

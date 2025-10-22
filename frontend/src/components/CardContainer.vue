@@ -30,6 +30,7 @@ const handleClick = (index) => {
     <Card
       v-for="card in cards"
       :key="card.id"
+      v-bind="card"
       back
       v-if="hidden"
     />
