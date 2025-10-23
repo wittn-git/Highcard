@@ -1,9 +1,9 @@
-from training.util.classes import Card, State
+from training.util.classes import State
 
 from typing import Tuple, List
 from itertools import product
 
-def get_reward(state: Tuple[Tuple[Card, Card]]) -> float:
+def get_reward(state: Tuple[Tuple[int, int]]) -> float:
     trick_winner = state.get_trick_winner()
     if trick_winner == 0:
         return 1.0
@@ -11,16 +11,14 @@ def get_reward(state: Tuple[Tuple[Card, Card]]) -> float:
         return -1.0
     return 0.0
 
-def get_actions(starting_cards : List[Card], state: State) -> List[Card]:
-    playable_cards = starting_cards.copy()
-    played_cards = state.get_cards(0)
-    for card in starting_cards:
-        if card in played_cards:
-            playable_cards.remove(card)
-    return playable_cards
+def get_actions(k : int, state: State) -> List[int]:
+    playable_cards = set([i for i in range(k)])
+    played_cards = set(state.get_cards(0))
+    return list(playable_cards - played_cards)
 
-def get_states(cards : List[Card]) -> List[State]:
+def get_states(k : int) -> List[State]:
 
+    cards = [i for i in range(k)]
     tuples = list(product(cards, repeat=2))
     states = []
 

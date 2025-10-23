@@ -1,6 +1,6 @@
-from training.util.classes import Card, GameHistory
+from training.util.classes import GameHistory
 
-from typing import List, Type
+from typing import Type
 from abc import ABC, abstractmethod
 import json
 
@@ -12,8 +12,8 @@ def register_agent(cls):
 
 class Agent(ABC):
 
-    def __init__(self, starting_cards : List[Card]):
-        self.starting_cards = starting_cards
+    def __init__(self, k : int):
+        self.k = k
 
     def get_strategy(self):
         strategy = lambda player, game_history, args: self.play(game_history, args)
@@ -28,12 +28,12 @@ class Agent(ABC):
             json.dump(data, f)
 
     @classmethod
-    def import_agent(cls, file_path: str, starting_cards : list[Card]) -> tuple["Agent", dict]:
+    def import_agent(cls, file_path: str, k : int) -> tuple["Agent", dict]:
         with open(file_path, "r") as f:
             data = json.load(f)
         agent_class = _AGENT_REGISTRY[data["class"]]
         agent, params = agent_class._deserialize(data["payload"])
-        assert agent.starting_cards == starting_cards, "Passed starting cards to no matched the agents."
+        assert agent.k == k, "Passed starting cards to no matched the agents."
         return agent, params
     
     @abstractmethod

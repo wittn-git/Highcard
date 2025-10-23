@@ -1,27 +1,24 @@
-from training.util.classes import Player, GameHistory, Card
+from training.util.classes import Player, GameHistory
 
 import random
 
 random.seed(42)
 
-def random_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
-    selected_card = random.choice(player.cards)
-    return selected_card
+def random_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
+    return random.choice(player.cards)
 
-def highest_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
-    selected_card = max(player.cards, key=lambda card: card.value)
-    return selected_card
+def highest_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
+    return max(player.cards)
 
-def lowest_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
-    selected_card = min(player.cards, key=lambda card: card.value)
-    return selected_card
+def lowest_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
+    return min(player.cards)
 
-def alternating_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
+def alternating_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
     if game_history.get_state().get_ncards() % 2:
         return lowest_strategy(player, game_history, args)
     return highest_strategy(player, game_history, args)
 
-def copying_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
+def copying_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
     state = game_history.get_state()
     if state.get_ncards() == 0:
         return highest_strategy(player, game_history, args)
@@ -30,16 +27,7 @@ def copying_strategy(player: Player, game_history: GameHistory, args : dict) -> 
         return last_card_adversial
     return highest_strategy(player, game_history, args)
 
-def fixed_pool_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
-    if args["round"] % 4 == 0:
-        return highest_strategy(player, game_history, args)
-    if args["round"] % 4 == 1:
-        return lowest_strategy(player, game_history, args)
-    if args["round"] % 4 == 2:
-        return alternating_strategy(player, game_history, args)
-    return copying_strategy(player, game_history, args)
-
-def stochastic_pool_strategy(player: Player, game_history: GameHistory, args : dict) -> Card:
+def pool_strategy(player: Player, game_history: GameHistory, args : dict) -> int:
     strategies = [
         highest_strategy,
         lowest_strategy,

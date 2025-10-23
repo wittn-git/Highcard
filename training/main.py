@@ -1,36 +1,99 @@
-from training.util.classes import Card
+from training.util.classes import Player, GameHistory
 from training.agents.agent_PI import TabularAgent
 from training.agents.agent_DQN import DQNAgent
+from training.agents.agent_STRAT import StrategyAgent
 from training.agents.agent import Agent
-from training.util.playing import play_rounds, play_round
+from training.util.playing import play_rounds
 from training.util.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
 from training.util.file_handling import get_file_name
 from training.util.seeding import seed
 from training.util.backwards_induction import compare_strategies
 
-def get_agent(starting_cards : list[Card]) -> Agent:
-    ## Training Tabular Agent
+from typing import Callable
+
+def train_tabular_agent(
+        k : int, 
+        adversarial_strategy : Callable[[Player, GameHistory], int],
+        params : dict
+) -> Agent:
+    agent = TabularAgent(k)
+    agent.train(
+       epochs=params["epochs"],
+       epsilon=params["epsilon"],
+       learning_rate=params["learning_rate"], 
+       discount_factor=params["discount_factor"], 
+       strategy=adversarial_strategy
+    )
+    agent.export_agent(get_file_name(agent, k, adversarial_strategy), params)
+    return agent
+
+def train_dqn_agent(
+        k : int, 
+        adversarial_strategy : Callable[[Player, GameHistory], int],
+        params : dict
+) -> Agent:
+    agent = DQNAgent(k, hidden_sizes=params["hidden_sizes"])
+    agent.train(
+        epochs=params["epochs"], 
+        epsilon=params["epsilon"], 
+        learning_rate=params["learning_rate"], 
+        discount_factor=params["discount_factor"], 
+        replay_buffer_capacity=params["replay_buffer_capacity"],
+        update_interval=params["update_interval"],
+        minibatch_size=params["minibatch_size"],
+        strategy=adversarial_strategy
+    )
+    agent.export_agent(get_file_name(agent, k, adversarial_strategy), params)
+    return agent
+
+def train_strategy_agent(
+        k : int, 
+        strategy : Callable[[Player, GameHistory], int]
+) -> Agent:
+    agent = StrategyAgent(k, strategy)
+    agent.export_agent(get_file_name(agent, k, strategy), {})
+    return agent
+
+def test_agent(
+        k : int,
+        file_name: str, 
+        evaluation_rounds: int, 
+        adversarial_strategy : Callable[[Player, GameHistory], int]
+) -> Agent:
+    agent, _ = Agent.import_agent(file_name, k)  
+    strategy = agent.get_strategy()
+    results = play_rounds(evaluation_rounds, k, strategy, adversarial_strategy)
+    print("-------------------------------")
+    print("Results after", evaluation_rounds, "rounds:")
+    print("Player 1 wins:", results[0])
+    print("Player 2 wins:", results[1])
+    print("Draws:", results[2])
+    return agent
+
+def compare_agent(
+        k : int,
+        file_name: str, 
+        adversarial_strategies : list[Callable[[Player, GameHistory], int]]
+):
+    agent, _ = Agent.import_agent(file_name, k)  
+    strategy = agent.get_strategy()
+    compare_strategies(k, strategy, adversarial_strategies)
+
+if __name__ == "__main__":
+
+    seed(43)
+    k = 5
+    adversarial_strategy = highest_strategy
+    file_name = "/home/wittn/workspace/Highcard/training/models/tabular_highest-strategy_5.json"
+    
     # params_tabular = {
     #     "epochs": 5000,
     #     "learning_rate": 0.1,
     #     "discount_factor": 1,
     #     "epsilon": 0.1
     # }
-    # agent = TabularAgent(starting_cards)
-    # agent.train(
-    #    epochs=params_tabular["epochs"],
-    #    epsilon=params_tabular["epsilon"],
-    #    learning_rate=params_tabular["learning_rate"], 
-    #    discount_factor=params_tabular["discount_factor"], 
-    #    strategy=adversarial_strategy
-    # )
-    # agent.export_agent(get_file_name(agent, adversarial_strategy, starting_cards), params_tabular)
+    # train_tabular_agent(k, adversarial_strategy, params_tabular)
 
-    # Import Tabular Agent
-    agent, _ = TabularAgent.import_agent("models/tabularagent_fixed-pool-strategy_3_1760956078.0740678.json", starting_cards)
-    # agent.print_q()
-
-    # Training DQN Agent
     # params_dqn = {
     #     "epochs": 5000,
     #     "learning_rate": 0.25,
@@ -41,57 +104,9 @@ def get_agent(starting_cards : list[Card]) -> Agent:
     #     "minibatch_size": 32,
     #     "hidden_sizes": (8, 8)
     # }
-    # agent = DQNAgent(starting_cards, hidden_sizes=params_dqn["hidden_sizes"])
-    # agent.train(
-    #     epochs=params_dqn["epochs"], 
-    #     epsilon=params_dqn["epsilon"], 
-    #     learning_rate=params_dqn["learning_rate"], 
-    #     discount_factor=params_dqn["discount_factor"], 
-    #     replay_buffer_capacity=params_dqn["replay_buffer_capacity"],
-    #     update_interval=params_dqn["update_interval"],
-    #     minibatch_size=params_dqn["minibatch_size"],
-    #     strategy=adversarial_strategy
-    # )
-    # agent.print_q()
-    # agent.export_agent(get_file_name(agent, adversarial_strategy, starting_cards), params_dqn)
+    # train_dqn_agent(k, adversarial_strategy, params_dqn)
 
-    # Import DQN Agent
-    # agent, _ = DQNAgent.import_agent("models/XXX", starting_cards)
+    # train_strategy_agent(k, adversarial_strategy)
 
-    return agent
-
-def run_single_evaluation():
-
-    seed(43)
-
-    starting_cards = [Card(i) for i in range(0, 3)]
-    evaluation_rounds = 100
-    adversarial_strategy = fixed_pool_strategy
-    
-    agent = get_agent(starting_cards)
-    strategy = agent.get_strategy()
-
-    results = play_rounds(evaluation_rounds, starting_cards, strategy, adversarial_strategy)
-    play_round(starting_cards, strategy, adversarial_strategy, True)
-
-    print("-------------------------------")
-    print("Results after", evaluation_rounds, "rounds:")
-    print("Player 1 wins:", results[0])
-    print("Player 2 wins:", results[1])
-    print("Draws:", results[2])
-
-def compare_agent():
-    
-    seed(43)
-
-    starting_cards = [Card(i) for i in range(0, 3)]
-    adversarial_strategies = [highest_strategy]
-    agent = get_agent(starting_cards)
-    strategy = agent.get_strategy()
-
-    compare_strategies(starting_cards, strategy, adversarial_strategies)
-
-if __name__ == "__main__":
-    pass
-    # run_single_evaluation()
-    # compare_agent()
+    # test_agent(k, file_name, 100, adversarial_strategy)
+    # compare_agent(k, file_name, [adversarial_strategy])

@@ -1,4 +1,4 @@
-from training.util.classes import Card, State
+from training.util.classes import State
 
 import random
 
@@ -8,7 +8,7 @@ class ReplayBuffer:
         self.capacity = capacity
         self.buffer = []
 
-    def push(self, state : State, action : Card, reward : float, next_state : State, done : bool):
+    def push(self, state : State, action : int, reward : float, next_state : State, done : bool):
         while len(self.buffer) >= self.capacity:
             self.buffer.pop(0)
         self.buffer.append((state, action, reward, next_state, done))
