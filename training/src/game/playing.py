@@ -2,7 +2,7 @@ from training.src.game.classes import Player, State
 
 from typing import Callable
 
-def play_trick(player_1 : Player, player_2 : Player, state : State, show: bool = False):
+def play_trick(player_1: Player, player_2: Player, state: State, show: bool = False):
     card_1 = player_1.play(state, {"player_id": 0})
     card_2 = player_2.play(state, {"player_id": 0})
     if show:
@@ -11,9 +11,9 @@ def play_trick(player_1 : Player, player_2 : Player, state : State, show: bool =
     return state
 
 def play_round(
-        k : int, 
-        strategy_1 : Callable[[Player, State], int], 
-        strategy_2 : Callable[[Player, State], int],
+        k: int, 
+        strategy_1: Callable[[Player, State], int], 
+        strategy_2: Callable[[Player, State], int],
         show: bool = False
     ):
     
@@ -27,10 +27,10 @@ def play_round(
     return state
 
 def play_rounds(
-        n_rounds : int, 
-        k : int, 
-        strategy_1 : Callable[[Player, State], int], 
-        strategy_2 : Callable[[Player, State], int]
+        n_rounds: int, 
+        k: int, 
+        strategy_1: Callable[[Player, State], int], 
+        strategy_2: Callable[[Player, State], int]
     ):
     
     wins_0, wins_1, draws = 0, 0, 0

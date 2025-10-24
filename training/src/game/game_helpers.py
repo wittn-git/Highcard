@@ -11,12 +11,12 @@ def get_reward(state: Tuple[Tuple[int, int]]) -> float:
         return -1.0
     return 0.0
 
-def get_actions(k : int, state: State) -> List[int]:
+def get_actions(k: int, state: State) -> List[int]:
     playable_cards = set([i for i in range(k)])
     played_cards = set(state.get_cards(0))
     return list(playable_cards - played_cards)
 
-def get_states(k : int) -> List[State]:
+def get_states(k: int) -> List[State]:
 
     cards = [i for i in range(k)]
     tuples = list(product(cards, repeat=2))

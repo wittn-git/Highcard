@@ -12,9 +12,9 @@ from training.src.other.backwards_induction import compare_strategies
 from typing import Callable
 
 def train_tabular_agent(
-        k : int, 
-        adversarial_strategy : Callable[[Player, State], int],
-        params : dict
+        k: int, 
+        adversarial_strategy: Callable[[Player, State], int],
+        params: dict
 ) -> Agent:
     agent = TabularAgent(k)
     agent.train(
@@ -28,9 +28,9 @@ def train_tabular_agent(
     return agent
 
 def train_dqn_agent(
-        k : int, 
-        adversarial_strategy : Callable[[Player, State], int],
-        params : dict
+        k: int, 
+        adversarial_strategy: Callable[[Player, State], int],
+        params: dict
 ) -> Agent:
     agent = DQNAgent(k, hidden_sizes=params["hidden_sizes"])
     agent.train(
@@ -47,18 +47,18 @@ def train_dqn_agent(
     return agent
 
 def train_strategy_agent(
-        k : int, 
-        strategy : Callable[[Player, State], int]
+        k: int, 
+        strategy: Callable[[Player, State], int]
 ) -> Agent:
     agent = StrategyAgent(k, strategy)
     agent.export_agent(get_file_name(agent, k, strategy), {})
     return agent
 
 def test_agent(
-        k : int,
+        k: int,
         file_name: str, 
         evaluation_rounds: int, 
-        adversarial_strategy : Callable[[Player, State], int]
+        adversarial_strategy: Callable[[Player, State], int]
 ) -> Agent:
     agent, _ = Agent.import_agent(file_name, k)  
     strategy = agent.get_strategy()
@@ -71,9 +71,9 @@ def test_agent(
     return agent
 
 def compare_agent(
-        k : int,
+        k: int,
         file_name: str, 
-        adversarial_strategies : list[Callable[[Player, State], int]]
+        adversarial_strategies: list[Callable[[Player, State], int]]
 ):
     agent, _ = Agent.import_agent(file_name, k)  
     strategy = agent.get_strategy()

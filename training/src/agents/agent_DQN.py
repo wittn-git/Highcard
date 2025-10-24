@@ -14,16 +14,16 @@ import torch
 @register_agent
 class DQNAgent(Agent):
 
-    def __init__(self, k : int, hidden_sizes : tuple[int, int]):
+    def __init__(self, k: int, hidden_sizes: tuple[int, int]):
         super().__init__(k)
         self.model = NeuralNetwork(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
 
-    def play(self, state: State, args : dict):
+    def play(self, state: State, args: dict):
         action = self.get_greedy_action(state)
         return action
     
-    def _serialize(self, params : dict):
+    def _serialize(self, params: dict):
         # Convert tensor values to lists for JSON serialization
         state_dict = self.model.state_dict()
         serializable_state_dict = {k: v.tolist() for k, v in state_dict.items()}
@@ -35,7 +35,7 @@ class DQNAgent(Agent):
             }
 
     @classmethod
-    def _deserialize(cls : Type["DQNAgent"], payload : dict) -> tuple["Agent", dict]:
+    def _deserialize(cls: Type["DQNAgent"], payload: dict) -> tuple["Agent", dict]:
         k = payload["k"]
         hidden_sizes = payload["hidden_sizes"]
         params = payload.get("params", {})
@@ -61,7 +61,7 @@ class DQNAgent(Agent):
         q_values = self.model.apply(input)
         return self.get_best_action(state, q_values)[0]
     
-    def get_best_action(self, state : State, q_values : np.ndarray) -> int:
+    def get_best_action(self, state: State, q_values: np.ndarray) -> int:
         actions = get_actions(self.k, state)
         action_q_values = {a: q_values[a] for a in actions}
         max_q = max(action_q_values.values())

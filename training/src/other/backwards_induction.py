@@ -3,10 +3,10 @@ from training.src.game.classes import Player, State
 from typing import Callable
 
 def compare_strategies(
-        k : int,
-        agent_strategy : Callable[[Player, State], int],
-        adversarial_strategies : list[Callable[[Player, State], int]],
-        verbose : bool = True
+        k: int,
+        agent_strategy: Callable[[Player, State], int],
+        adversarial_strategies: list[Callable[[Player, State], int]],
+        verbose: bool = True
 ) -> None:
     # This function should only be called with a pool of deterministic strategies for the adversarial strategies and with deterministic strategies for the agent strategy
     
@@ -25,7 +25,7 @@ def compare_strategies(
         print(f"Optimal actions taken: {optimal_actions}")
         print(f"Suboptimal actions taken: {suboptimal_actions}")
 
-def get_dict_from_strategy(k : int, strategy : Callable[[Player, State], int], state : State, action_dict : dict[State, int] = {}) -> dict[State, int]:
+def get_dict_from_strategy(k: int, strategy: Callable[[Player, State], int], state: State, action_dict: dict[State, int] = {}) -> dict[State, int]:
     if state.is_terminal(k):
         return action_dict
     player_cards = state.get_residual_cards(1, k)
@@ -39,7 +39,7 @@ def get_dict_from_strategy(k : int, strategy : Callable[[Player, State], int], s
 
 class Node:
 
-    def __init__(self, state : State, k : int, probability : float, strategies :  list[Callable[[Player, State], int]]):
+    def __init__(self, state: State, k: int, probability: float, strategies:  list[Callable[[Player, State], int]]):
         
         self.state = state
         self.k = k
@@ -53,7 +53,7 @@ class Node:
             self.optimal_actions = [card for card, val in children_values.items() if val == max_val]
             self.value = max_val * probability
     
-    def get_adversarial_probabilities(self, strategies :  list[Callable[[Player, State], int]]) -> dict[int, float]:
+    def get_adversarial_probabilities(self, strategies:  list[Callable[[Player, State], int]]) -> dict[int, float]:
         ad_player_cards = self.state.get_residual_cards(1, self.k)
         ad_played_cards = {card: 0 for card in ad_player_cards}
         for strategy in strategies:
@@ -63,7 +63,7 @@ class Node:
         ad_player_probs = {card: x / len(strategies) for (card, x) in ad_played_cards.items() if x > 0}
         return ad_player_probs
 
-    def get_children(self, strategies :  list[Callable[[Player, State], int]]) -> dict[int, list["Node"]]:
+    def get_children(self, strategies:  list[Callable[[Player, State], int]]) -> dict[int, list["Node"]]:
         player_cards = self.state.get_residual_cards(0, self.k)
         ad_player_probs = self.get_adversarial_probabilities(strategies)
         children = {}
@@ -74,7 +74,7 @@ class Node:
             children[card] = card_children
         return children
 
-    def get_optimal_action_dict(self, optimal_action_dict : dict[State, list[int]] = {}):
+    def get_optimal_action_dict(self, optimal_action_dict: dict[State, list[int]] = {}):
         if self.state.is_terminal(self.k):
             return optimal_action_dict
         optimal_action_dict[self.state] = self.optimal_actions
@@ -83,6 +83,6 @@ class Node:
                 optimal_action_dict = child.get_optimal_action_dict(optimal_action_dict)
         return optimal_action_dict
 
-def backwards_induction(k : int, adversarial_strategies :  list[Callable[[Player, State], int]]) -> dict[State, int]:
+def backwards_induction(k: int, adversarial_strategies:  list[Callable[[Player, State], int]]) -> dict[State, int]:
     game_tree = Node(State((), ()), k, 1.0, adversarial_strategies)
     return game_tree.get_optimal_action_dict()

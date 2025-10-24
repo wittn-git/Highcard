@@ -4,18 +4,18 @@ import copy
 
 class State:
 
-    def __init__(self, cards_p0 : Tuple[int] = (), cards_p1: Tuple[int] = ()):
+    def __init__(self, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1
     
-    def add_cards(self, card_p0 : int, card_p1 : int):
+    def add_cards(self, card_p0: int, card_p1: int):
         self.cards_p0 += (card_p0,)
         self.cards_p1 += (card_p1,)
     
     def get_predecessor(self):
         return State(self.cards_p0[:-1], self.cards_p1[:-1])
     
-    def get_successor(self, card_p0 : int, card_p1 : int):
+    def get_successor(self, card_p0: int, card_p1: int):
         return State(self.get_cards(0) + (card_p0, ), self.get_cards(1) + (card_p1, ))
     
     def empty(self):
@@ -24,7 +24,7 @@ class State:
     def get_ncards(self) -> int:
         return len(self.cards_p0)
 
-    def get_trick_winner(self, index : int = -1) -> int:
+    def get_trick_winner(self, index: int = -1) -> int:
         if self.cards_p0[index] > self.cards_p1[index]:
             return 0
         elif self.cards_p1[index] > self.cards_p0[index]:
@@ -52,12 +52,12 @@ class State:
             return self.cards_p1
         raise ValueError("Invalid player ID")
     
-    def get_residual_cards(self, player_id: int, k : int) -> Tuple[int]:
+    def get_residual_cards(self, player_id: int, k: int) -> Tuple[int]:
         player_card_set = set(self.get_cards(player_id))
         starting_card_set = set([i for i in range(k)])
         return tuple(starting_card_set - player_card_set)
     
-    def get_action(self, player_id : int, index : int = -1) -> int:
+    def get_action(self, player_id: int, index: int = -1) -> int:
         if player_id == 0:
             return self.cards_p0[index]
         elif player_id == 1:
@@ -74,7 +74,7 @@ class State:
         trajectory.reverse()
         return trajectory
     
-    def is_terminal(self, k : int):
+    def is_terminal(self, k: int):
         return self.get_ncards() == k
     
     def copy(self):
@@ -99,13 +99,13 @@ class State:
 
 class Player:
 
-    def __init__(self, id: int, k : int, play_func: Callable[["Player", State], int], cards : list[int] = None):
+    def __init__(self, id: int, k: int, play_func: Callable[["Player", State], int], cards: list[int] = None):
         self.id = id
         self.k = k
         self._play_func = play_func
         self.cards = cards if cards is not None else list(range(self.k))
     
-    def play(self, state: State, args : dict) -> int:
+    def play(self, state: State, args: dict) -> int:
         selected_card = self._play_func(self, state, args)
         self.cards.remove(selected_card)
         return selected_card
@@ -113,7 +113,7 @@ class Player:
     def reset(self):
         self.cards = [i for i in range(self.k)]
 
-def get_states(cards : List[int]) -> List[State]:
+def get_states(cards: List[int]) -> List[State]:
     
     tuples = list(product(cards, repeat=2))
     states = []

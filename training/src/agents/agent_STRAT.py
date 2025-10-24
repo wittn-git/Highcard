@@ -8,16 +8,16 @@ import importlib
 @register_agent
 class StrategyAgent(Agent):
 
-    def __init__(self, k : int, strategy : Callable[[Player, State], int]):
+    def __init__(self, k: int, strategy: Callable[[Player, State], int]):
         super().__init__(k)
         self.strategy = strategy
 
-    def play(self, state: State, args : dict):
+    def play(self, state: State, args: dict):
         player = Player(args["player_id"], self.k, self.strategy)
         player.cards = state.get_residual_cards(args["player_id"], self.k)
         return self.strategy(player, state, args)
     
-    def _serialize(self, params : dict):
+    def _serialize(self, params: dict):
         return {
             "strategy": self.strategy.__name__,
             "k": self.k,
@@ -25,7 +25,7 @@ class StrategyAgent(Agent):
         }
 
     @classmethod
-    def _deserialize(cls : Type["StrategyAgent"], payload : dict) -> tuple["Agent", dict]:
+    def _deserialize(cls: Type["StrategyAgent"], payload: dict) -> tuple["Agent", dict]:
         k = payload["k"]
         params = payload.get("params", {})
         strategy_name = payload["strategy"]

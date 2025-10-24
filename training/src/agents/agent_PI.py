@@ -11,16 +11,16 @@ import ast
 @register_agent
 class TabularAgent(Agent):
 
-    def __init__(self, k : int):
+    def __init__(self, k: int):
         super().__init__(k)
         states = get_states(k)
         self.q = {(s, a): 0 for s in states for a in get_actions(k, s)}
 
-    def play(self, state: State, args : dict):
+    def play(self, state: State, args: dict):
         action = self.get_greedy_action(state)
         return action
     
-    def _serialize(self, params : dict):
+    def _serialize(self, params: dict):
         return {
             "q": {
                 str(([card for card in state.get_cards(0)] + [card for card in state.get_cards(1)], action)): value
@@ -31,7 +31,7 @@ class TabularAgent(Agent):
         }
 
     @classmethod
-    def _deserialize(cls : Type["TabularAgent"], payload : dict) -> tuple["Agent", dict]:
+    def _deserialize(cls: Type["TabularAgent"], payload: dict) -> tuple["Agent", dict]:
         k = payload["k"]
         params = payload.get("params", {})
         agent = cls(k)
@@ -52,14 +52,14 @@ class TabularAgent(Agent):
     def train(
             self, 
             epochs: int, 
-            epsilon : float, 
-            learning_rate : float, 
-            discount_factor : float, 
-            strategy : Callable[[Player, State], int]
+            epsilon: float, 
+            learning_rate: float, 
+            discount_factor: float, 
+            strategy: Callable[[Player, State], int]
     ):
         for t in range(epochs):
             print(f"Epoch {t+1}/{epochs}", end="\r")
-            def agent_strategy(player: Player, state: State, args : dict) -> int:
+            def agent_strategy(player: Player, state: State, args: dict) -> int:
                 return self.play_eps_greedy(state, epsilon)
             state = play_round(self.k, agent_strategy, strategy)
             trajectory = state.get_trajectory()

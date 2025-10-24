@@ -18,7 +18,7 @@ class NeuralNetwork(nn.Module):
     def forward(self, input: torch.Tensor):
         return self.net(input)
     
-    def apply(self, input : torch.Tensor):
+    def apply(self, input: torch.Tensor):
         with torch.no_grad():
             return self.forward(input).detach().numpy().flatten()
 
