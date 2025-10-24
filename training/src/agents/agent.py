@@ -1,4 +1,4 @@
-from training.util.classes import GameHistory
+from training.src.game.classes import GameHistory
 
 from typing import Type
 from abc import ABC, abstractmethod

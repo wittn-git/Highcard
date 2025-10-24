@@ -4,7 +4,7 @@ if [ -z ${VIRTUAL_ENV} ]; then
     source venv/bin/activate
 fi
 if ! pgrep -f "python3 -m backend.main" > /dev/null; then
-    python3 -m backend.main &
+    python3 -m backend.src.main &
 fi
 
 cd frontend

@@ -1,6 +1,6 @@
-from training.util.classes import GameHistory, Player
-from training.agents.agent import Agent, register_agent
-from training.util.strategies import *
+from training.src.game.classes import GameHistory, Player
+from training.src.agents.agent import Agent, register_agent
+from training.src.game.strategies import *
 
 from typing import List, Callable, Type
 import importlib

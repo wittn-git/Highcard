@@ -1,13 +1,13 @@
-from training.util.classes import Player, GameHistory
-from training.agents.agent_PI import TabularAgent
-from training.agents.agent_DQN import DQNAgent
-from training.agents.agent_STRAT import StrategyAgent
-from training.agents.agent import Agent
-from training.util.playing import play_rounds
-from training.util.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
-from training.util.file_handling import get_file_name
-from training.util.seeding import seed
-from training.util.backwards_induction import compare_strategies
+from training.src.game.classes import Player, GameHistory
+from training.src.agents.agent_PI import TabularAgent
+from training.src.agents.agent_DQN import DQNAgent
+from training.src.agents.agent_STRAT import StrategyAgent
+from training.src.agents.agent import Agent
+from training.src.game.playing import play_rounds
+from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
+from training.src.io.file_handling import get_file_name
+from training.src.util.seeding import seed
+from training.src.other.backwards_induction import compare_strategies
 
 from typing import Callable
 

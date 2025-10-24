@@ -1,12 +1,8 @@
-from training.agents.agent import Agent
-from training.agents.agent_DQN import DQNAgent
-from training.agents.agent_PI import TabularAgent
-from training.agents.agent_STRAT import StrategyAgent
-from training.util.classes import GameHistory, Player, State
-from backend.options import MODEL_MAPPING
+from training.src.agents.agent import Agent
+from training.src.game.classes import GameHistory, Player, State
+from backend.src.options import MODEL_MAPPING
 
 from typing import Callable
-import os
 
 _loaded_model_name, _loaded_strategy = None, None
 

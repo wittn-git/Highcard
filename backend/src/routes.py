@@ -1,5 +1,5 @@
-from backend.options import CARD_OPTIONS, MODEL_OPTIONS
-from backend.model_handler import get_card, extract_winner
+from backend.src.options import CARD_OPTIONS, MODEL_OPTIONS
+from backend.src.model_handler import get_card, extract_winner
 
 from flask import Blueprint, jsonify, request
 

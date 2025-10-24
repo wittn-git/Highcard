@@ -1,4 +1,4 @@
-from training.util.classes import State
+from training.src.game.classes import State
 
 import random
 

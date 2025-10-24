@@ -1,4 +1,4 @@
-from training.util.classes import State
+from training.src.game.classes import State
 
 from typing import Tuple, List
 from itertools import product

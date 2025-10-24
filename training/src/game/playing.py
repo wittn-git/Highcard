@@ -1,4 +1,4 @@
-from training.util.classes import Player, GameHistory
+from training.src.game.classes import Player, GameHistory
 
 from typing import Callable
 

@@ -1,7 +1,4 @@
-from training.util.classes import GameHistory, Player, State
-from training.util.helpers import get_states
-
-import math
+from training.src.game.classes import GameHistory, Player, State
 
 from typing import Callable
 

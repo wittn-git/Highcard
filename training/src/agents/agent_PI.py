@@ -1,7 +1,7 @@
-from training.util.classes import GameHistory, Player, State
-from training.util.playing import play_round
-from training.util.helpers import get_reward, get_actions, get_states
-from training.agents.agent import Agent, register_agent
+from training.src.game.classes import GameHistory, Player, State
+from training.src.game.playing import play_round
+from training.src.game.game_helpers import get_reward, get_actions, get_states
+from training.src.agents.agent import Agent, register_agent
 
 from typing import List, Callable, Type
 from prettytable import PrettyTable
