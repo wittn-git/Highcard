@@ -4,31 +4,55 @@ import TableCards from './components/TableCards.vue'
 import CardContainer from './components/CardContainer.vue'
 import SelectionPopup from './components/SelectionPopup.vue'
 
+// Game state variables
 const handCards = ref([])
 const oppHandCards = ref([])
 const tableCards = ref([])
 const oppTableCards = ref([])
 
+// UI state variables
 const showCardPopup = ref(true)
 const showModelPopup = ref(false)
 const showWinnerPopup = ref(false)
+
+// PopUp options
 const cardOptions = ref([])
 const modelOptions = ref([])
 const winner = ref([])
+
+// PopUp selections
 const selectedCardCount = ref(null)
 const selectedModel = ref(null)
 
+// --- API helpers ---
+const API_BASE = 'http://localhost:5000'
+
+async function fetchJson(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  return res.json()
+}
+
+async function postJson(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  return res.json()
+}
+
+// Selection handlers
 onMounted(async () => {
-  const res = await fetch('http://localhost:5000/options/cards')
-  cardOptions.value = await res.json()
+  cardOptions.value = await fetchJson(`${API_BASE}/options/cards`)
 })
 
 async function chooseCardCount(count) {
   selectedCardCount.value = count
   showCardPopup.value = false
   showModelPopup.value = true
-  const res = await fetch(`http://localhost:5000/options/models?cards=${count}`)
-  modelOptions.value = await res.json()
+  modelOptions.value = await fetchJson(`${API_BASE}/options/cards`)
 }
 
 function chooseModel(model) {
@@ -42,6 +66,7 @@ function showWinner(x) {
   showCardPopup.value = true
 }
 
+// Game logic functions
 function initGame() {
   handCards.value = []
   oppHandCards.value = []
@@ -54,55 +79,44 @@ function initGame() {
 }
 
 async function playCard(index) {
+
+  // player plays card
   const card = handCards.value[index]
   tableCards.value.push(card)
   handCards.value.splice(index, 1)
-  const payload_card = {
+
+  // opponent plays card
+  const payloadCard = {
     tableCards: tableCards.value.map(c => c.value),
     oppTableCards: oppTableCards.value.map(c => c.value),
     cardCount: selectedCardCount.value,
     model: selectedModel.value
   }
-  const res_card = await fetch('http://localhost:5000/play', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload_card)
-  })
-  const res_card_json = await res_card.json()
-  let oppCard = res_card_json["card"]
-  let oppIndex = oppHandCards.value.findIndex(card => card.value === oppCard)
-  if(oppIndex == -1){
-    console.error("Opponent card not found in hand")
-    return
-  }
+  const resCard = await postJson(`${API_BASE}/play`, payloadCard)
+  const oppCardValue = resCard.card
+  const oppIndex = oppHandCards.value.findIndex(c => c.value === oppCardValue)
   oppTableCards.value.push(oppHandCards.value[oppIndex])
   oppHandCards.value.splice(oppIndex, 1)
 
-  const payload_winner = {
+  // check for winner
+  const payloadWinner = {
     tableCards: tableCards.value.map(c => c.value),
     oppTableCards: oppTableCards.value.map(c => c.value),
     cardCount: selectedCardCount.value
   }
-  const res_winner = await fetch('http://localhost:5000/winner', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload_winner)
-  })
-  const res_winner_json = await res_winner.json()
-  console.log(res_winner_json)
-  if(res_winner_json["winner"]){
+  const resWinner = await postJson(`${API_BASE}/winner`, payloadWinner)
+  if(resWinner.winner){
+    winner.value = [resWinner.winner]
     setTimeout(() => {
-      () => {}
-    }, 3000)
-    winner.value = [res_winner_json["winner"]]
-    showWinnerPopup.value = true
+      showWinnerPopup.value = true
+    }, 2000)
   }
 }
 </script>
 
 <template>
 
-  <!-- Number of cards -->
+  <!-- Number of cards selection -->
   <SelectionPopup
     v-if="showCardPopup"
     title="Select Number of Cards"

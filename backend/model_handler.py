@@ -35,8 +35,6 @@ def get_card(model_name : str, k : int, table_cards : list[int], opp_table_cards
 def extract_winner(k : int, table_cards : list[int], opp_table_cards : list[int]):
     game_history = get_gamehistory(table_cards, opp_table_cards, False)
     state = game_history.get_state()
-    print(state)
-    print(state.is_terminal(k))
     if state.is_terminal(k):
         return state.get_game_winner()
     return None
