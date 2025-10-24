@@ -4,7 +4,7 @@ import copy
 
 class State:
 
-    def __init__(self, cards_p0 : Tuple[int], cards_p1: Tuple[int]):
+    def __init__(self, cards_p0 : Tuple[int] = (), cards_p1: Tuple[int] = ()):
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1
     
@@ -15,9 +15,8 @@ class State:
     def get_predecessor(self):
         return State(self.cards_p0[:-1], self.cards_p1[:-1])
     
-    @staticmethod
-    def get_successor(state : "State", card_p0 : int, card_p1 : int):
-        return State(state.get_cards(0) + (card_p0, ), state.get_cards(1) + (card_p1, ))
+    def get_successor(self, card_p0 : int, card_p1 : int):
+        return State(self.get_cards(0) + (card_p0, ), self.get_cards(1) + (card_p1, ))
     
     def empty(self):
         return len(self.cards_p0) == 0
@@ -32,7 +31,7 @@ class State:
             return 1
         return -1
     
-    def get_game_scores(self) -> tuple[int, int]:
+    def get_scores(self) -> tuple[int, int]:
         score_p0, score_p1 = 0, 0
         for i in range(len(self.cards_p0)):
             winner = self.get_trick_winner(i)
@@ -40,8 +39,8 @@ class State:
             elif winner == 1: score_p1 += 1
         return score_p0, score_p1
     
-    def get_game_winner(self) -> int:
-        score_p0, score_p1 = self.get_game_scores()
+    def get_winner(self) -> int:
+        score_p0, score_p1 = self.get_scores()
         if score_p0 > score_p1: return 0
         elif score_p1 > score_p0: return 1
         return -1
@@ -65,8 +64,21 @@ class State:
             return self.cards_p1[index]
         raise ValueError("Invalid player ID")
     
+    def get_trajectory(self) -> List["State"]:
+        trajectory = []
+        current_state = self.copy()
+        while not current_state.empty():
+            trajectory.append(current_state)
+            current_state = current_state.get_predecessor()
+        trajectory.append(current_state)
+        trajectory.reverse()
+        return trajectory
+    
     def is_terminal(self, k : int):
         return self.get_ncards() == k
+    
+    def copy(self):
+        return State(self.cards_p0, self.cards_p1)
 
     def __hash__(self):
         return hash((self.cards_p0, self.cards_p1))
@@ -85,48 +97,16 @@ class State:
             return False
         return self.cards_p0 == value.cards_p0 and self.cards_p1 == value.cards_p1
 
-class GameHistory:
-
-    def __init__(self, state : State = None):
-        if state == None:
-            self.history = [State((), ())]
-            return
-        reversed_history = []
-        new_state = state
-        while not new_state.empty():
-            reversed_history.append(new_state)
-            new_state = new_state.get_predecessor()
-        reversed_history.append(new_state)
-        self.history = list(reversed(reversed_history))
-
-    def add_record(self, card_p0 : int, card_p1 : int):
-        last_state = copy.deepcopy(self.history[-1])
-        last_state.add_cards(card_p0, card_p1)
-        self.history.append(last_state)
-
-    def get_history(self) -> List[State]:
-        return self.history
-
-    def get_state(self) -> State:
-        return self.history[-1]
-
-    def winner(self) -> int:
-        return self.history[-1].get_game_winner()
-    
-    def __repr__(self):
-        stringed_history = [str(state) for state in self.history]
-        return f"GameHistory[{", ".join(stringed_history)}]"
-
 class Player:
 
-    def __init__(self, id: int, k : int, play_func: Callable[["Player", GameHistory], int], cards : list[int] = None):
+    def __init__(self, id: int, k : int, play_func: Callable[["Player", State], int], cards : list[int] = None):
         self.id = id
         self.k = k
         self._play_func = play_func
         self.cards = cards if cards is not None else list(range(self.k))
     
-    def play(self, game_history: GameHistory, args : dict) -> int:
-        selected_card = self._play_func(self, game_history, args)
+    def play(self, state: State, args : dict) -> int:
+        selected_card = self._play_func(self, state, args)
         self.cards.remove(selected_card)
         return selected_card
 

@@ -1,4 +1,4 @@
-from training.src.game.classes import GameHistory, Player
+from training.src.game.classes import Player, State
 from training.src.agents.agent import Agent, register_agent
 from training.src.game.strategies import *
 
@@ -8,14 +8,14 @@ import importlib
 @register_agent
 class StrategyAgent(Agent):
 
-    def __init__(self, k : int, strategy : Callable[[Player, GameHistory], int]):
+    def __init__(self, k : int, strategy : Callable[[Player, State], int]):
         super().__init__(k)
         self.strategy = strategy
 
-    def play(self, game_history: GameHistory, args : dict):
+    def play(self, state: State, args : dict):
         player = Player(args["player_id"], self.k, self.strategy)
-        player.cards = game_history.get_state().get_residual_cards(args["player_id"], self.k)
-        return self.strategy(player, game_history, args)
+        player.cards = state.get_residual_cards(args["player_id"], self.k)
+        return self.strategy(player, state, args)
     
     def _serialize(self, params : dict):
         return {
@@ -29,7 +29,7 @@ class StrategyAgent(Agent):
         k = payload["k"]
         params = payload.get("params", {})
         strategy_name = payload["strategy"]
-        mod = importlib.import_module("training.util.strategies")
+        mod = importlib.import_module("training.src.game.strategies")
         strategy = getattr(mod, strategy_name) 
         agent = cls(k, strategy)
         return agent, params

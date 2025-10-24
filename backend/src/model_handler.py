@@ -1,12 +1,17 @@
 from training.src.agents.agent import Agent
-from training.src.game.classes import GameHistory, Player, State
+from training.src.game.classes import Player, State
 from backend.src.options import MODEL_MAPPING
+
+# imports neccessary for agent registration
+from training.src.agents.agent_DQN import DQNAgent
+from training.src.agents.agent_STRAT import StrategyAgent
+from training.src.agents.agent_PI import TabularAgent
 
 from typing import Callable
 
 _loaded_model_name, _loaded_strategy = None, None
 
-def load_model(model_name : str, k : int) -> Callable[[Player, GameHistory], int]:
+def load_model(model_name : str, k : int) -> Callable[[Player, State], int]:
     global _loaded_model_name, _loaded_strategy
     if _loaded_model_name != model_name:
         _loaded_model_name = model_name
@@ -14,23 +19,21 @@ def load_model(model_name : str, k : int) -> Callable[[Player, GameHistory], int
         _loaded_strategy = agent.get_strategy()
     return _loaded_strategy
 
-def get_gamehistory(table_cards : list[int], opp_table_cards : list[int], omit_player_0_last : bool) -> GameHistory:
+def get_state(table_cards : list[int], opp_table_cards : list[int], omit_player_0_last : bool) -> State:
     if omit_player_0_last:
         table_cards = table_cards[:-1]
     state = State(tuple([card - 1 for card in table_cards]), tuple([card - 1 for card in opp_table_cards]))
-    game_history = GameHistory(state)
-    return game_history
+    return state
 
 def get_card(model_name : str, k : int, table_cards : list[int], opp_table_cards : list[int]) -> int:
     strategy = load_model(model_name, k)
-    game_history = get_gamehistory(table_cards, opp_table_cards, True)
-    player = Player(1, k, strategy, game_history.get_state().get_residual_cards(1, k))
-    played_card = strategy(player, game_history, {"player_id": 1})
+    state = get_state(table_cards, opp_table_cards, True)
+    player = Player(1, k, strategy, state.get_residual_cards(1, k))
+    played_card = strategy(player, state, {"player_id": 1})
     return played_card + 1
 
 def extract_winner(k : int, table_cards : list[int], opp_table_cards : list[int]):
-    game_history = get_gamehistory(table_cards, opp_table_cards, False)
-    state = game_history.get_state()
+    state = get_state(table_cards, opp_table_cards, False)
     if state.is_terminal(k):
-        return state.get_game_winner()
+        return state.get_winner()
     return None

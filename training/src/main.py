@@ -1,10 +1,10 @@
-from training.src.game.classes import Player, GameHistory
+from training.src.game.classes import Player, State
 from training.src.agents.agent_PI import TabularAgent
 from training.src.agents.agent_DQN import DQNAgent
 from training.src.agents.agent_STRAT import StrategyAgent
 from training.src.agents.agent import Agent
 from training.src.game.playing import play_rounds
-from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy, fixed_pool_strategy
+from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
 from training.src.io.file_handling import get_file_name
 from training.src.util.seeding import seed
 from training.src.other.backwards_induction import compare_strategies
@@ -13,7 +13,7 @@ from typing import Callable
 
 def train_tabular_agent(
         k : int, 
-        adversarial_strategy : Callable[[Player, GameHistory], int],
+        adversarial_strategy : Callable[[Player, State], int],
         params : dict
 ) -> Agent:
     agent = TabularAgent(k)
@@ -29,7 +29,7 @@ def train_tabular_agent(
 
 def train_dqn_agent(
         k : int, 
-        adversarial_strategy : Callable[[Player, GameHistory], int],
+        adversarial_strategy : Callable[[Player, State], int],
         params : dict
 ) -> Agent:
     agent = DQNAgent(k, hidden_sizes=params["hidden_sizes"])
@@ -48,7 +48,7 @@ def train_dqn_agent(
 
 def train_strategy_agent(
         k : int, 
-        strategy : Callable[[Player, GameHistory], int]
+        strategy : Callable[[Player, State], int]
 ) -> Agent:
     agent = StrategyAgent(k, strategy)
     agent.export_agent(get_file_name(agent, k, strategy), {})
@@ -58,7 +58,7 @@ def test_agent(
         k : int,
         file_name: str, 
         evaluation_rounds: int, 
-        adversarial_strategy : Callable[[Player, GameHistory], int]
+        adversarial_strategy : Callable[[Player, State], int]
 ) -> Agent:
     agent, _ = Agent.import_agent(file_name, k)  
     strategy = agent.get_strategy()
@@ -73,7 +73,7 @@ def test_agent(
 def compare_agent(
         k : int,
         file_name: str, 
-        adversarial_strategies : list[Callable[[Player, GameHistory], int]]
+        adversarial_strategies : list[Callable[[Player, State], int]]
 ):
     agent, _ = Agent.import_agent(file_name, k)  
     strategy = agent.get_strategy()

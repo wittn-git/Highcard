@@ -1,43 +1,44 @@
-from training.src.game.classes import Player, GameHistory
+from training.src.game.classes import Player, State
 
 from typing import Callable
 
-def play_trick(player_1 : Player, player_2 : Player, game_history : GameHistory, show: bool = False):
-    card_1 = player_1.play(game_history, {"player_id": 0})
-    card_2 = player_2.play(game_history, {"player_id": 0})
+def play_trick(player_1 : Player, player_2 : Player, state : State, show: bool = False):
+    card_1 = player_1.play(state, {"player_id": 0})
+    card_2 = player_2.play(state, {"player_id": 0})
     if show:
         print(card_1, card_2)
-    game_history.add_record(card_1, card_2)
+    state.add_cards(card_1, card_2)
+    return state
 
 def play_round(
         k : int, 
-        strategy_1 : Callable[[Player, GameHistory], int], 
-        strategy_2 : Callable[[Player, GameHistory], int],
+        strategy_1 : Callable[[Player, State], int], 
+        strategy_2 : Callable[[Player, State], int],
         show: bool = False
     ):
     
     player_1 = Player(id=0, k=k, play_func=strategy_1)
     player_2 = Player(id=1, k=k, play_func=strategy_2)
-    game_history = GameHistory()
+    state = State()
 
     for _ in range(k):
-        play_trick(player_1, player_2, game_history, show)
+        play_trick(player_1, player_2, state, show)
         
-    return game_history
+    return state
 
 def play_rounds(
         n_rounds : int, 
         k : int, 
-        strategy_1 : Callable[[Player, GameHistory], int], 
-        strategy_2 : Callable[[Player, GameHistory], int]
+        strategy_1 : Callable[[Player, State], int], 
+        strategy_2 : Callable[[Player, State], int]
     ):
     
     wins_0, wins_1, draws = 0, 0, 0
 
     for _ in range(n_rounds):
 
-        game_history = play_round(k, strategy_1, strategy_2)
-        winner = game_history.winner()
+        state = play_round(k, strategy_1, strategy_2)
+        winner = state.get_winner()
 
         if winner == 0: 
             wins_0 += 1

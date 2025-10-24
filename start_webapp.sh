@@ -5,7 +5,9 @@ if [ -z ${VIRTUAL_ENV} ]; then
 fi
 if ! pgrep -f "python3 -m backend.main" > /dev/null; then
     python3 -m backend.src.main &
+    sleep 2
 fi
+
 
 cd frontend
 if ! pgrep -f "npm run dev" > /dev/null; then
