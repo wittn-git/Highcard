@@ -27,7 +27,7 @@ def play_card():
 @routes.route("/winner", methods=["GET", "POST"])
 def get_winner():
     data = request.get_json()
-    table_cards, opp_table_cards, card_count= data["tableCards"], data["oppTableCards"], data["cardCount"]
+    table_cards, opp_table_cards, card_count = data["tableCards"], data["oppTableCards"], data["cardCount"]
     winner = extract_winner(card_count, table_cards, opp_table_cards)
     if winner == None:
         return jsonify({"status": "ok"})

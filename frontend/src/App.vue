@@ -52,7 +52,7 @@ async function chooseCardCount(count) {
   selectedCardCount.value = count
   showCardPopup.value = false
   showModelPopup.value = true
-  modelOptions.value = await fetchJson(`${API_BASE}/options/cards`)
+  modelOptions.value = await fetchJson(`${API_BASE}/options/models?cards=${count}`)
 }
 
 function chooseModel(model) {
