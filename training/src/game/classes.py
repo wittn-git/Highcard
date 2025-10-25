@@ -1,9 +1,10 @@
 from typing import List, Callable, Tuple
-from itertools import product
 
 class State:
 
     def __init__(self, k : int, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
+        if not isinstance(k, int):
+            raise TypeError(f"State.__init__: expected int for k, got {type(k).__name__}")
         self.k = k
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1
@@ -86,7 +87,7 @@ class State:
     def __repr__(self) -> str:
         if self.empty():
             return f"State(k={self.k})[]"
-        repr = "State(k={self.k})["
+        repr = f"State(k={self.k})["
         for card_p0, card_p1 in zip(self.cards_p0, self.cards_p1):
             repr += f"({card_p0}, {card_p1}), "
         repr = repr[:-2] + "]"
@@ -97,16 +98,49 @@ class State:
             return False
         return self.cards_p0 == value.cards_p0 and self.cards_p1 == value.cards_p1
 
+class StateHistory:
+    
+    def __init__(self, k : int, state: State = None):
+        self.history: List[State] = [State(k)]
+        if state is not None:
+            self.push(state)
+    
+    def push(self, state: State):
+        if not self.is_empty() and not self.top().is_terminal():
+            self.history.pop()
+        self.history.append(state)
+    
+    def pop(self) -> State:
+        return self.history.pop()
+    
+    def is_terminal(self) -> bool:
+        if self.is_empty():
+            return False
+        return self.top().is_terminal()
+    
+    def top(self) -> State:
+        return self.history[-1]
+    
+    def is_empty(self) -> bool:
+        return len(self.history) == 0
+    
+    def __repr__(self) -> str:
+        repr = "StateHistory[\n"
+        for state in self.history:
+            repr += f"  {state}\n"
+        repr += "]"
+        return repr
+    
 class Player:
 
-    def __init__(self, id: int, k: int, play_func: Callable[["Player", State], int], cards: list[int] = None):
+    def __init__(self, id: int, k: int, play_func: Callable[["Player", StateHistory], int], cards: list[int] = None):
         self.id = id
         self.k = k
         self._play_func = play_func
         self.cards = cards if cards is not None else list(range(self.k))
     
-    def play(self, state: State, args: dict) -> int:
-        selected_card = self._play_func(self, state, args)
+    def play(self, state_history: StateHistory, args: dict) -> int:
+        selected_card = self._play_func(self, state_history, args)
         self.cards.remove(selected_card)
         return selected_card
 

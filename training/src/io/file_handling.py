@@ -1,10 +1,10 @@
-from training.src.game.classes import Player, State
+from training.src.game.classes import Player, StateHistory
 from training.src.agents.agent import Agent
 
 from typing import Callable
 import time
 
-def get_file_name(agent: Agent, k: int, adversarial_strategy: Callable[[Player, State], int]) -> str:
+def get_file_name(agent: Agent, k: int, adversarial_strategy: Callable[[Player, StateHistory], int]) -> str:
     strategy_string = ""
     if adversarial_strategy != None:
         strategy_name = adversarial_strategy.__name__.replace("_", "-")

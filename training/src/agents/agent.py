@@ -1,4 +1,4 @@
-from training.src.game.classes import State
+from training.src.game.classes import StateHistory
 
 from typing import Type
 from abc import ABC, abstractmethod
@@ -16,7 +16,7 @@ class Agent(ABC):
         self.k = k
 
     def get_strategy(self):
-        strategy = lambda player, state, args: self.play(state, args)
+        strategy = lambda player, state_history, args: self.play(state_history, args)
         return strategy
     
     def export_agent(self, file_path: str, params: dict):
@@ -46,5 +46,5 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def play(self, state: State, args: dict):
+    def play(self, state_history: StateHistory, args: dict):
         pass

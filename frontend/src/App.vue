@@ -134,7 +134,7 @@ async function playCard(index) {
 
   <!-- Game board -->
   <div v-if="!showCardPopup && !showModelPopup && !showWinnerPopup">
-    <CardContainer :cards="oppHandCards" position="top"  /> <!-- hidden-->
+    <CardContainer :cards="oppHandCards" position="top" hidden />
     <TableCards :tableCards="tableCards" :oppTableCards="oppTableCards" />
     <CardContainer :cards="handCards" position="bottom" @card-click="playCard" />
   </div>

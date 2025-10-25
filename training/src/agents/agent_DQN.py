@@ -1,4 +1,4 @@
-from training.src.game.classes import Player, State
+from training.src.game.classes import Player, State, StateHistory
 from training.src.game.playing import play_trick
 from training.src.learning.neural_nets import NeuralNetwork
 from training.src.learning.replay_buffer import ReplayBuffer
@@ -19,8 +19,8 @@ class DQNAgent(Agent):
         self.model = NeuralNetwork(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
 
-    def play(self, state: State, args: dict):
-        action = self.get_greedy_action(state)
+    def play(self, state_history: StateHistory, args: dict):
+        action = self.get_greedy_action(state_history.top())
         return action
     
     def _serialize(self, params: dict):
@@ -82,31 +82,31 @@ class DQNAgent(Agent):
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
         temp_model = NeuralNetwork(input_shape=self.k * 2, output_shape=self.k, hidden_sizes=self.hidden_sizes)
         
-        def agent_strategy(player: Player, state: State, args: dict) -> int:
-            return self.play_eps_greedy(state, epsilon)
+        def agent_strategy(player: Player, state_history: StateHistory, args: dict) -> int:
+            return self.play_eps_greedy(state_history.top(), epsilon)
         
         player = Player(id=0, k=self.k, play_func=agent_strategy)
         opp_player = Player(id=1, k=self.k, play_func=strategy)
 
-        active_state = State(self.k)   # initial empty state
+        state_history= StateHistory(self.k)   # initial empty state
         round = 0
 
         for t in range(epochs):
-            print(f"Epoch {t+1}/{epochs}", end="\r")
+            #print(f"Epoch {t+1}/{epochs}", end="\r")
 
             # reset game if terminal state
-            if active_state.is_terminal():
-                active_state = State(self.k)
+            if state_history.is_terminal():
+                state_history.push(State(self.k))
                 player.reset()
                 opp_player.reset()
                 round += 1
 
             # play trick (returns the next state)
-            active_state = play_trick(player, opp_player, active_state)
+            state_history = play_trick(player, opp_player, state_history)
 
             # extract transition
-            state = active_state.get_predecessor()
-            next_state = active_state
+            next_state = state_history.top()
+            state = next_state.get_predecessor()
             action = next_state.get_action(0)
             reward = get_reward(next_state)
             done = next_state.is_terminal()
@@ -119,6 +119,7 @@ class DQNAgent(Agent):
             for state_, action_, reward_, next_state_, done_ in minibatch:
                 
                 # compute target
+                #print(state_, action_, reward_, next_state_, done_)
                 target = reward_
                 if not done_:
                     q_values_next = temp_model.apply(self.transform_state_to_input(next_state_))

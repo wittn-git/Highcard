@@ -1,4 +1,4 @@
-from training.src.game.classes import Player, State
+from training.src.game.classes import Player, State, StateHistory
 from training.src.game.playing import play_round
 from training.src.game.game_helpers import get_reward, get_actions, get_states
 from training.src.agents.agent import Agent, register_agent
@@ -16,8 +16,8 @@ class TabularAgent(Agent):
         states = get_states(k)
         self.q = {(s, a): 0 for s in states for a in get_actions(k, s)}
 
-    def play(self, state: State, args: dict):
-        action = self.get_greedy_action(state)
+    def play(self, state_history: StateHistory, args: dict):
+        action = self.get_greedy_action(state_history.top())
         return action
     
     def _serialize(self, params: dict):
@@ -55,14 +55,15 @@ class TabularAgent(Agent):
             epsilon: float, 
             learning_rate: float, 
             discount_factor: float, 
-            strategy: Callable[[Player, State], int]
+            strategy: Callable[[Player, StateHistory], int]
     ):
+        state_history = StateHistory(self.k)
         for t in range(epochs):
-            print(f"Epoch {t+1}/{epochs}", end="\r")
-            def agent_strategy(player: Player, state: State, args: dict) -> int:
-                return self.play_eps_greedy(state, epsilon)
-            state = play_round(self.k, agent_strategy, strategy)
-            trajectory = state.get_trajectory()
+            #print(f"Epoch {t+1}/{epochs}", end="\r")
+            def agent_strategy(player: Player, state_history: StateHistory, args: dict) -> int:
+                return self.play_eps_greedy(state_history.top(), epsilon)
+            state_history = play_round(self.k, agent_strategy, strategy, state_history)
+            trajectory = state_history.top().get_trajectory()
             for i in range(len(trajectory)-1):
                 state, next_state = trajectory[i], trajectory[i+1]
                 action = next_state.get_action(0)

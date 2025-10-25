@@ -1,5 +1,5 @@
 from training.src.agents.agent import Agent
-from training.src.game.classes import Player, State
+from training.src.game.classes import Player, State, StateHistory
 from backend.src.options import MODEL_MAPPING
 
 # imports neccessary for agent registration
@@ -9,14 +9,16 @@ from training.src.agents.agent_PI import TabularAgent
 
 from typing import Callable
 
-_loaded_model_name, _loaded_strategy = None, None
+_loaded_model_name, _loaded_strategy, _state_history = None, None, None
 
-def load_model(model_name: str, k: int) -> Callable[[Player, State], int]:
-    global _loaded_model_name, _loaded_strategy
+def load_model(model_name: str, k: int) -> Callable[[Player, StateHistory], int]:
+    global _loaded_model_name, _loaded_strategy, _state_history
     if _loaded_model_name != model_name:
         _loaded_model_name = model_name
         agent, _ = Agent.import_agent(f"training/models/{MODEL_MAPPING[k][_loaded_model_name]}", k)
         _loaded_strategy = agent.get_strategy()
+    if _state_history is None:
+        _state_history = StateHistory(k)
     return _loaded_strategy
 
 def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
@@ -26,10 +28,12 @@ def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_
     return state
 
 def get_card(model_name: str, k: int, table_cards: list[int], opp_table_cards: list[int]) -> int:
+    global _state_history
     strategy = load_model(model_name, k)
     state = get_state(k, table_cards, opp_table_cards, True)
+    _state_history.push(state)
     player = Player(1, k, strategy, state.get_residual_cards(1))
-    played_card = strategy(player, state, {"player_id": 1})
+    played_card = strategy(player, _state_history, {"player_id": 1})
     return played_card + 1
 
 def extract_winner(k: int, table_cards: list[int], opp_table_cards: list[int]):
