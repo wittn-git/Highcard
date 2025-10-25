@@ -24,7 +24,7 @@ def get_states(k: int) -> List[State]:
 
     def backtrack(used_first, used_second, current_p0, current_p1):
         
-        current_state = State(tuple(current_p0), tuple(current_p1))
+        current_state = State(k, tuple(current_p0), tuple(current_p1))
         states.append(current_state)
         
         if len(used_first) >= len(cards) - 1: return

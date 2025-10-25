@@ -14,7 +14,7 @@ class StrategyAgent(Agent):
 
     def play(self, state: State, args: dict):
         player = Player(args["player_id"], self.k, self.strategy)
-        player.cards = state.get_residual_cards(args["player_id"], self.k)
+        player.cards = state.get_residual_cards(args["player_id"])
         return self.strategy(player, state, args)
     
     def _serialize(self, params: dict):

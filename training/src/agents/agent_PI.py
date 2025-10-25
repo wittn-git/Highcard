@@ -39,7 +39,7 @@ class TabularAgent(Agent):
         for key, value in payload["q"].items():
             card_values, action_value = ast.literal_eval(key)
             p0_cards, p1_cards = tuple(c for c in card_values[:len(card_values)//2]), tuple(c for c in card_values[len(card_values)//2:])
-            state = State(p0_cards, p1_cards)
+            state = State(k, p0_cards, p1_cards)
             action = action_value
             agent.q[(state, action)] = value
         return agent, params
@@ -67,7 +67,7 @@ class TabularAgent(Agent):
                 state, next_state = trajectory[i], trajectory[i+1]
                 action = next_state.get_action(0)
                 next_state_value = 0
-                if not next_state.is_terminal(self.k):
+                if not next_state.is_terminal():
                     next_action = self.get_greedy_action(next_state)
                     next_state_value = self.q[(next_state, next_action)]
                 reward = get_reward(next_state)

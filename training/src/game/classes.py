@@ -1,10 +1,10 @@
 from typing import List, Callable, Tuple
 from itertools import product
-import copy
 
 class State:
 
-    def __init__(self, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
+    def __init__(self, k : int, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
+        self.k = k
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1
     
@@ -13,10 +13,10 @@ class State:
         self.cards_p1 += (card_p1,)
     
     def get_predecessor(self):
-        return State(self.cards_p0[:-1], self.cards_p1[:-1])
+        return State(self.k, self.cards_p0[:-1], self.cards_p1[:-1])
     
     def get_successor(self, card_p0: int, card_p1: int):
-        return State(self.get_cards(0) + (card_p0, ), self.get_cards(1) + (card_p1, ))
+        return State(self.k, self.get_cards(0) + (card_p0, ), self.get_cards(1) + (card_p1, ))
     
     def empty(self):
         return len(self.cards_p0) == 0
@@ -52,9 +52,9 @@ class State:
             return self.cards_p1
         raise ValueError("Invalid player ID")
     
-    def get_residual_cards(self, player_id: int, k: int) -> Tuple[int]:
+    def get_residual_cards(self, player_id: int) -> Tuple[int]:
         player_card_set = set(self.get_cards(player_id))
-        starting_card_set = set([i for i in range(k)])
+        starting_card_set = set([i for i in range(self.k)])
         return tuple(starting_card_set - player_card_set)
     
     def get_action(self, player_id: int, index: int = -1) -> int:
@@ -74,19 +74,19 @@ class State:
         trajectory.reverse()
         return trajectory
     
-    def is_terminal(self, k: int):
-        return self.get_ncards() == k
+    def is_terminal(self) -> bool:
+        return self.get_ncards() == self.k
     
-    def copy(self):
-        return State(self.cards_p0, self.cards_p1)
+    def copy(self) -> "State":
+        return State(self.k, self.cards_p0, self.cards_p1)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.cards_p0, self.cards_p1))
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.empty():
-            return "State[]"
-        repr = "State["
+            return f"State(k={self.k})[]"
+        repr = "State(k={self.k})["
         for card_p0, card_p1 in zip(self.cards_p0, self.cards_p1):
             repr += f"({card_p0}, {card_p1}), "
         repr = repr[:-2] + "]"
@@ -112,18 +112,3 @@ class Player:
 
     def reset(self):
         self.cards = [i for i in range(self.k)]
-
-def get_states(cards: List[int]) -> List[State]:
-    
-    tuples = list(product(cards, repeat=2))
-    states = []
-
-    def backtrack(used_first, used_second, current_p0, current_p1):
-        states.append(State(tuple(current_p0), tuple(current_p1)))
-        for (a, b) in tuples:
-            if a not in used_first and b not in used_second:
-                backtrack(used_first | {a}, used_second | {b}, current_p0 + [a], current_p1 + [b])
-
-    backtrack(set(), set(), [], [])
-    
-    return states

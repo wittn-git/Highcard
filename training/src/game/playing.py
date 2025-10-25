@@ -19,7 +19,7 @@ def play_round(
     
     player_1 = Player(id=0, k=k, play_func=strategy_1)
     player_2 = Player(id=1, k=k, play_func=strategy_2)
-    state = State()
+    state = State(k)
 
     for _ in range(k):
         play_trick(player_1, player_2, state, show)

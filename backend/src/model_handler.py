@@ -19,21 +19,21 @@ def load_model(model_name: str, k: int) -> Callable[[Player, State], int]:
         _loaded_strategy = agent.get_strategy()
     return _loaded_strategy
 
-def get_state(table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
+def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
     if omit_player_0_last:
         table_cards = table_cards[:-1]
-    state = State(tuple([card - 1 for card in table_cards]), tuple([card - 1 for card in opp_table_cards]))
+    state = State(k, tuple([card - 1 for card in table_cards]), tuple([card - 1 for card in opp_table_cards]))
     return state
 
 def get_card(model_name: str, k: int, table_cards: list[int], opp_table_cards: list[int]) -> int:
     strategy = load_model(model_name, k)
-    state = get_state(table_cards, opp_table_cards, True)
-    player = Player(1, k, strategy, state.get_residual_cards(1, k))
+    state = get_state(k, table_cards, opp_table_cards, True)
+    player = Player(1, k, strategy, state.get_residual_cards(1))
     played_card = strategy(player, state, {"player_id": 1})
     return played_card + 1
 
 def extract_winner(k: int, table_cards: list[int], opp_table_cards: list[int]):
-    state = get_state(table_cards, opp_table_cards, False)
-    if state.is_terminal(k):
+    state = get_state(k, table_cards, opp_table_cards, False)
+    if state.is_terminal():
         return state.get_winner()
     return None

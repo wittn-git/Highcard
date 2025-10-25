@@ -88,15 +88,15 @@ class DQNAgent(Agent):
         player = Player(id=0, k=self.k, play_func=agent_strategy)
         opp_player = Player(id=1, k=self.k, play_func=strategy)
 
-        active_state = State()   # initial empty state
+        active_state = State(self.k)   # initial empty state
         round = 0
 
         for t in range(epochs):
             print(f"Epoch {t+1}/{epochs}", end="\r")
 
             # reset game if terminal state
-            if active_state.is_terminal(self.k):
-                active_state = State()
+            if active_state.is_terminal():
+                active_state = State(self.k)
                 player.reset()
                 opp_player.reset()
                 round += 1
@@ -109,7 +109,7 @@ class DQNAgent(Agent):
             next_state = active_state
             action = next_state.get_action(0)
             reward = get_reward(next_state)
-            done = next_state.is_terminal(self.k)
+            done = next_state.is_terminal()
 
             # add transition to replay buffer
             replay_buffer.push(state.copy(), action, reward, next_state.copy(), done)
