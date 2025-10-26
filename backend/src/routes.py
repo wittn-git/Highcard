@@ -1,5 +1,5 @@
 from backend.src.options import CARD_OPTIONS, MODEL_OPTIONS
-from backend.src.model_handler import get_card, extract_winner
+from backend.src.model_handler import play_card, extract_winner, load_model
 
 from flask import Blueprint, jsonify, request
 
@@ -18,17 +18,21 @@ def get_model_options():
     return jsonify(models)
 
 @routes.route("/play", methods=["GET", "POST"])
-def play_card():
+def get_card():
     data = request.get_json()
-    model, table_cards, opp_table_cards, card_count = data["model"], data["tableCards"], data["oppTableCards"], data["cardCount"]
-    card_value = get_card(model, card_count, table_cards, opp_table_cards)
+    card_value = play_card(data["cardCount"], data["tableCards"], data["oppTableCards"])
     return jsonify({"status": "ok", "card": card_value})
+
+@routes.route("/modelload", methods=["POST"])
+def set_model():
+    data = request.get_json()
+    load_model(data["model"], data["cardCount"])
+    return jsonify({"status": "ok"})
 
 @routes.route("/winner", methods=["GET", "POST"])
 def get_winner():
     data = request.get_json()
-    table_cards, opp_table_cards, card_count = data["tableCards"], data["oppTableCards"], data["cardCount"]
-    winner = extract_winner(card_count, table_cards, opp_table_cards)
+    winner = extract_winner(data["cardCount"], data["tableCards"], data["oppTableCards"])
     if winner == None:
         return jsonify({"status": "ok"})
     winner_map = {0: "Human", 1: "AI", -1: "Tie"}

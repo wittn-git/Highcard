@@ -9,15 +9,12 @@ from training.src.agents.agent_PI import TabularAgent
 
 from typing import Callable
 
-_loaded_model_name, _loaded_agent, _state_history = None, None, None
+_loaded_agent, _state_history = None, None
 
-def load_agent(model_name: str, k: int) -> Callable[[Player, StateHistory], int]:
-    global _loaded_model_name, _loaded_agent, _state_history
-    if _loaded_model_name != model_name:
-        _loaded_model_name = model_name
-        _loaded_agent, _ = Agent.import_agent(f"training/models/{MODEL_MAPPING[k][_loaded_model_name]}", k)
-    if _state_history is None:
-        _state_history = StateHistory(k)
+def load_model(model_name: str, k: int) -> Callable[[Player, StateHistory], int]:
+    global _loaded_agent, _state_history
+    _loaded_agent, _ = Agent.import_agent(f"training/models/{MODEL_MAPPING[k][model_name]}", k)
+    _state_history = StateHistory(k)
     return _loaded_agent
 
 def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
@@ -26,12 +23,11 @@ def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_
     state = State(k, tuple([card - 1 for card in table_cards]), tuple([card - 1 for card in opp_table_cards]))
     return state
 
-def get_card(model_name: str, k: int, table_cards: list[int], opp_table_cards: list[int]) -> int:
+def play_card(k: int, table_cards: list[int], opp_table_cards: list[int]) -> int:
     global _state_history
-    agent = load_agent(model_name, k)
     state = get_state(k, table_cards, opp_table_cards, True)
     _state_history.push(state)
-    player = Player(1, k, agent, state.get_residual_cards(1))
+    player = Player(1, k, _loaded_agent, state.get_residual_cards(1))
     played_card = player.play(_state_history, {})
     return played_card + 1
 

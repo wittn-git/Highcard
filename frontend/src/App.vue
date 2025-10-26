@@ -20,9 +20,8 @@ const cardOptions = ref([])
 const modelOptions = ref([])
 const winner = ref([])
 
-// PopUp selections
+// PopUp selection
 const selectedCardCount = ref(null)
-const selectedModel = ref(null)
 
 // --- API helpers ---
 const API_BASE = 'http://localhost:5000'
@@ -55,9 +54,9 @@ async function chooseCardCount(count) {
   modelOptions.value = await fetchJson(`${API_BASE}/options/models?cards=${count}`)
 }
 
-function chooseModel(model) {
-  selectedModel.value = model
+async function chooseModel(model) {
   showModelPopup.value = false
+  await postJson(`${API_BASE}/modelload`, {model: model, cardCount: selectedCardCount.value})
   initGame()
 }
 
@@ -89,8 +88,7 @@ async function playCard(index) {
   const payloadCard = {
     tableCards: tableCards.value.map(c => c.value),
     oppTableCards: oppTableCards.value.map(c => c.value),
-    cardCount: selectedCardCount.value,
-    model: selectedModel.value
+    cardCount: selectedCardCount.value
   }
   const resCard = await postJson(`${API_BASE}/play`, payloadCard)
   const oppCardValue = resCard.card
