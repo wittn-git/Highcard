@@ -12,10 +12,8 @@ class StrategyAgent(Agent):
         super().__init__(k)
         self.strategy = strategy
 
-    def play(self, state_history: StateHistory, args: dict):
-        player = Player(args["player_id"], self.k, self.strategy)
-        player.cards = state_history.top().get_residual_cards(args["player_id"])
-        return self.strategy(player, state_history, args)
+    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        return self.strategy(cards, state_history, player_id, args)
     
     def _serialize(self, params: dict):
         return {
@@ -33,3 +31,6 @@ class StrategyAgent(Agent):
         strategy = getattr(mod, strategy_name) 
         agent = cls(k, strategy)
         return agent, params
+    
+    def name(self) -> str:
+        return "strat-" + self.strategy.__name__.replace("_strategy", "")

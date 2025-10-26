@@ -13,7 +13,7 @@ from typing import Callable
 
 def train_tabular_agent(
         k: int, 
-        adversarial_strategy: Callable[[Player, StateHistory], int],
+        adversarial_agent: Agent,
         params: dict
 ) -> Agent:
     agent = TabularAgent(k)
@@ -22,14 +22,14 @@ def train_tabular_agent(
        epsilon=params["epsilon"],
        learning_rate=params["learning_rate"], 
        discount_factor=params["discount_factor"], 
-       strategy=adversarial_strategy
+       adversarial_agent=adversarial_agent
     )
-    agent.export_agent(get_file_name(agent, k, adversarial_strategy), params)
+    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
     return agent
 
 def train_dqn_agent(
         k: int, 
-        adversarial_strategy: Callable[[Player, StateHistory], int],
+        adversarial_agent: Agent,
         params: dict
 ) -> Agent:
     agent = DQNAgent(k, hidden_sizes=params["hidden_sizes"])
@@ -41,9 +41,9 @@ def train_dqn_agent(
         replay_buffer_capacity=params["replay_buffer_capacity"],
         update_interval=params["update_interval"],
         minibatch_size=params["minibatch_size"],
-        strategy=adversarial_strategy
+        adversarial_agent=adversarial_agent
     )
-    agent.export_agent(get_file_name(agent, k, adversarial_strategy), params)
+    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
     return agent
 
 def train_strategy_agent(
@@ -58,11 +58,10 @@ def test_agent(
         k: int,
         file_name: str, 
         evaluation_rounds: int, 
-        adversarial_strategy: Callable[[Player, StateHistory], int]
+        adversarial_agent: Agent,
 ) -> Agent:
-    agent, _ = Agent.import_agent(file_name, k)  
-    strategy = agent.get_strategy()
-    results = play_rounds(evaluation_rounds, k, strategy, adversarial_strategy)
+    agent, _ = Agent.import_agent(file_name, k)
+    results = play_rounds(evaluation_rounds, k, agent, adversarial_agent)
     print("-------------------------------")
     print("Results after", evaluation_rounds, "rounds:")
     print("Player 1 wins:", results[0])
@@ -73,27 +72,25 @@ def test_agent(
 def compare_agent(
         k: int,
         file_name: str, 
-        adversarial_strategies: list[Callable[[Player, StateHistory], int]]
+        adversarial_strategies : list[Callable[[Player, StateHistory], int]],
 ):
     agent, _ = Agent.import_agent(file_name, k)  
-    strategy = agent.get_strategy()
-    compare_strategies(k, strategy, adversarial_strategies)
+    compare_strategies(k, agent, adversarial_strategies)
 
 if __name__ == "__main__":
 
     seed(43)
     k = 5
     adversarial_strategy = highest_strategy
-    file_name = "/home/wittn/workspace/Highcard/training/models/tabular_highest-strategy_5.json"
     
-    # params_tabular = {
-    #     "epochs": 5000,
-    #     "learning_rate": 0.1,
-    #     "discount_factor": 1,
-    #     "epsilon": 0.1
-    # }
-    # train_tabular_agent(k, adversarial_strategy, params_tabular)
-
+    params_tabular = {
+        "epochs": 5000,
+        "learning_rate": 0.1,
+        "discount_factor": 1,
+        "epsilon": 0.1
+    }
+    train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
+    
     # params_dqn = {
     #     "epochs": 5000,
     #     "learning_rate": 0.25,
@@ -104,9 +101,11 @@ if __name__ == "__main__":
     #     "minibatch_size": 32,
     #     "hidden_sizes": (8, 8)
     # }
-    # train_dqn_agent(k, adversarial_strategy, params_dqn)
+    # train_dqn_agent(k, StrategyAgent(k, adversarial_strategy), params_dqn)
 
     # train_strategy_agent(k, adversarial_strategy)
 
-    # test_agent(k, file_name, 100, adversarial_strategy)
-    # compare_agent(k, file_name, [adversarial_strategy])
+    # test_agent(k, file_name, 100, StrategyAgent(k, adversarial_strategy))
+
+    # file_name = "/home/wittn/workspace/Highcard/training/models/tabular_highest-strategy_5.json"
+    # compare_agent(k, file_name, agent, [adversarial_strategy])

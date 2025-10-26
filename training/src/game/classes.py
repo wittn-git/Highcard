@@ -1,4 +1,8 @@
-from typing import List, Callable, Tuple
+from __future__ import annotations
+from typing import List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from training.src.agents.agent import Agent
 
 class State:
 
@@ -54,7 +58,7 @@ class State:
     def get_residual_cards(self, player_id: int) -> Tuple[int]:
         player_card_set = set(self.get_cards(player_id))
         starting_card_set = set([i for i in range(self.k)])
-        return tuple(starting_card_set - player_card_set)
+        return list(starting_card_set - player_card_set)
     
     def get_action(self, player_id: int, index: int = -1) -> int:
         if player_id == 0:
@@ -75,6 +79,9 @@ class State:
     
     def is_terminal(self) -> bool:
         return self.get_ncards() == self.k
+
+    def get_symmetric_state(self) -> "State":
+        return State(self.k, self.cards_p1, self.cards_p0)
     
     def copy(self) -> "State":
         return State(self.k, self.cards_p0, self.cards_p1)
@@ -116,12 +123,15 @@ class StateHistory:
             return False
         return self.top().is_terminal()
     
-    def top(self) -> State:
+    def top(self, player_id : int = 0) -> State:
+        state = self.history[-1]
+        if player_id == 1:
+            return state.get_symmetric_state()
         return self.history[-1]
     
     def is_empty(self) -> bool:
         return len(self.history) == 0
-    
+
     def __repr__(self) -> str:
         repr = "StateHistory[\n"
         for state in self.history:
@@ -131,16 +141,16 @@ class StateHistory:
     
 class Player:
 
-    def __init__(self, id: int, k: int, play_func: Callable[["Player", StateHistory], int], cards: list[int] = None):
+    def __init__(self, id: int, k: int, agent : Agent, cards: list[int] = None):
         self.id = id
         self.k = k
-        self._play_func = play_func
+        self.agent = agent
         self.cards = cards if cards is not None else list(range(self.k))
     
     def play(self, state_history: StateHistory, args: dict) -> int:
-        selected_card = self._play_func(self, state_history, args)
-        self.cards.remove(selected_card)
-        return selected_card
+        card = self.agent.play(self.cards, state_history, self.id, args)
+        self.cards.remove(card)
+        return card
 
     def reset(self):
         self.cards = [i for i in range(self.k)]

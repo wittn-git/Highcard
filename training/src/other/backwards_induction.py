@@ -1,16 +1,16 @@
 from training.src.game.classes import Player, StateHistory, State
+from training.src.agents.agent import Agent
 
 from typing import Callable
 
 def compare_strategies(
         k: int,
-        agent_strategy: Callable[[Player, StateHistory], int],
-        adversarial_strategies: list[Callable[[Player, StateHistory], int]],
+        agent: Agent,
+        adversarial_strategies:  list[Callable[[Player, StateHistory], int]],
         verbose: bool = True
 ) -> None:
     # This function should only be called with a pool of deterministic strategies for the adversarial strategies and with deterministic strategies for the agent strategy, that do not depend on the state history
-    
-    agent_reactions = get_dict_from_strategy(k, agent_strategy, State(k, (), ()))
+    agent_reactions = get_dict_from_agent(k, agent, State(k, (), ()))
     optimal_reactions = backwards_induction(k, adversarial_strategies)
 
     optimal_actions, suboptimal_actions = 0, 0
@@ -25,16 +25,17 @@ def compare_strategies(
         print(f"Optimal actions taken: {optimal_actions}")
         print(f"Suboptimal actions taken: {suboptimal_actions}")
 
-def get_dict_from_strategy(k: int, strategy: Callable[[Player, StateHistory], int], state: State, action_dict: dict[State, int] = {}) -> dict[State, int]:
+def get_dict_from_agent(k: int, agent: Agent, state: State, action_dict: dict[State, int] = {}) -> dict[State, int]:
     if state.is_terminal():
         return action_dict
-    player_cards = state.get_residual_cards(1)
-    action = strategy(Player(1, k, strategy, player_cards), StateHistory(k, state), {})
+    player_cards = state.get_residual_cards(0)
+    player = Player(0, k, agent, player_cards)
+    action = player.play(StateHistory(k, state), {})
     action_dict[state] = action
     ad_player_cards = state.get_residual_cards(1)
     for ad_card in ad_player_cards:
         successor_state = state.get_successor(action, ad_card)
-        action_dict = get_dict_from_strategy(k, strategy, successor_state, action_dict)
+        action_dict = get_dict_from_agent(k, agent, successor_state, action_dict)
     return action_dict
 
 class Node:
@@ -57,8 +58,7 @@ class Node:
         ad_player_cards = self.state.get_residual_cards(1)
         ad_played_cards = {card: 0 for card in ad_player_cards}
         for strategy in strategies:
-            ad_player = Player(1, self.k, strategy, ad_player_cards)
-            adversarial_card = strategy(ad_player, StateHistory(self.k, self.state), {})
+            adversarial_card = strategy(ad_player_cards, StateHistory(self.k, self.state), 1, {})
             ad_played_cards[adversarial_card] += 1
         ad_player_probs = {card: x / len(strategies) for (card, x) in ad_played_cards.items() if x > 0}
         return ad_player_probs

@@ -4,6 +4,7 @@ from training.src.learning.neural_nets import NeuralNetwork
 from training.src.learning.replay_buffer import ReplayBuffer
 from training.src.game.game_helpers import get_reward, get_actions, get_states
 from training.src.agents.agent import register_agent, Agent
+from training.src.agents.agent_STRAT import StrategyAgent
 
 from typing import Callable, Type
 from prettytable import PrettyTable
@@ -19,9 +20,9 @@ class DQNAgent(Agent):
         self.model = NeuralNetwork(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
 
-    def play(self, state_history: StateHistory, args: dict) -> int:
-        action = self.get_greedy_action(state_history.top())
-        return action
+    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        state = state_history.top(player_id)
+        return self.get_greedy_action(state)
     
     def _serialize(self, params: dict) -> dict:
         # Convert tensor values to lists for JSON serialization
@@ -77,16 +78,16 @@ class DQNAgent(Agent):
         replay_buffer_capacity: int,
         update_interval: int,
         minibatch_size: int,
-        strategy: Callable[[Player, State], int]
+        adversarial_agent: Agent,
     ):
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
         temp_model = NeuralNetwork(input_shape=self.k * 2, output_shape=self.k, hidden_sizes=self.hidden_sizes)
         
-        def agent_strategy(player: Player, state_history: StateHistory, args: dict) -> int:
+        def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
             return self.play_eps_greedy(state_history.top(), epsilon)
         
-        player = Player(id=0, k=self.k, play_func=agent_strategy)
-        opp_player = Player(id=1, k=self.k, play_func=strategy)
+        player = Player(id=0, k=self.k, agent=StrategyAgent(self.k, agent_strategy))
+        opp_player = Player(id=1, k=self.k, agent=adversarial_agent)
 
         state_history= StateHistory(self.k)   # initial empty state
         round = 0
@@ -150,3 +151,6 @@ class DQNAgent(Agent):
                 q_value = q_values[self.get_action_index(action)]
                 table.add_row([state, action, f"{q_value:.3f}"])
         print(table)
+    
+    def name(self):
+        return "dqn"

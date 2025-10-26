@@ -7,6 +7,8 @@ from training.src.game.strategies import random_strategy, highest_strategy, lowe
 from training.src.util.seeding import seed
 from training.src.other.backwards_induction import compare_strategies
 
+# TODO
+
 import os
 
 def get_test_filename():
@@ -14,36 +16,32 @@ def get_test_filename():
 
 def test_strategy_agent():
     k = 3
-    adversarial_strategy = highest_strategy
     agent = StrategyAgent(k, random_strategy)
-    strategy = agent.get_strategy()
-    play_rounds(1, k, strategy, adversarial_strategy)
+    adversarial_agent = StrategyAgent(k, highest_strategy)
+    play_rounds(1, k, agent, adversarial_agent)
     agent.export_agent(get_test_filename(), {})
     imported_agent, _ = StrategyAgent.import_agent(get_test_filename(), k)
-    imported_strategy = imported_agent.get_strategy()
-    play_rounds(1, k, imported_strategy, adversarial_strategy)
+    play_rounds(1, k, imported_agent, adversarial_agent)
 
 def test_tabular_agent():
     k = 3
-    adversarial_strategy = highest_strategy
+    adversarial_agent = StrategyAgent(k, highest_strategy)
     agent = TabularAgent(k)
     agent.train(
         epochs=10,
         epsilon=0.1,
         learning_rate=0.1,
         discount_factor=1,
-        strategy=adversarial_strategy
+        adversarial_agent=adversarial_agent
     )
-    strategy = agent.get_strategy()
-    play_rounds(1, k, strategy, adversarial_strategy)
+    play_rounds(1, k, agent, adversarial_agent)
     agent.export_agent(get_test_filename(), {})
     imported_agent, _ = TabularAgent.import_agent(get_test_filename(), k)
-    imported_strategy = imported_agent.get_strategy()
-    play_rounds(1, k, imported_strategy, adversarial_strategy)
+    play_rounds(1, k, imported_agent, adversarial_agent)
 
 def test_dqn_agent():
     k = 3
-    adversarial_strategy = highest_strategy
+    adversarial_agent = StrategyAgent(k, highest_strategy)
     agent = DQNAgent(k, hidden_sizes=(8,8))
     agent.train(
         epochs=10,
@@ -53,20 +51,17 @@ def test_dqn_agent():
         replay_buffer_capacity=64,
         update_interval=20,
         minibatch_size=32,
-        strategy=adversarial_strategy
+        adversarial_agent=adversarial_agent
     )
-    strategy = agent.get_strategy()
-    play_rounds(1, k, strategy, adversarial_strategy)
+    play_rounds(1, k, agent, adversarial_agent)
     agent.export_agent(get_test_filename(), {})
     imported_agent, _ = DQNAgent.import_agent(get_test_filename(), k)
-    imported_strategy = imported_agent.get_strategy()
-    play_rounds(1, k, imported_strategy, adversarial_strategy)
+    play_rounds(1, k, imported_agent, adversarial_agent)
 
 def test_comparison():
     k = 3
     agent, _ = Agent.import_agent(get_test_filename(), k)  
-    strategy = agent.get_strategy()
-    compare_strategies(k, strategy, [highest_strategy, lowest_strategy], False)
+    compare_strategies(k, agent, [highest_strategy, lowest_strategy], False)
 
 if __name__ == "__main__":
 

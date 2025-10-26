@@ -1,8 +1,11 @@
-from training.src.game.classes import StateHistory
-
-from typing import Type
+from __future__ import annotations
+from typing import Type, TYPE_CHECKING
 from abc import ABC, abstractmethod
+
 import json
+
+if TYPE_CHECKING:
+    from training.src.game.classes import StateHistory
 
 _AGENT_REGISTRY = {}
 
@@ -15,10 +18,6 @@ class Agent(ABC):
     def __init__(self, k: int):
         self.k = k
 
-    def get_strategy(self):
-        strategy = lambda player, state_history, args: self.play(state_history, args)
-        return strategy
-    
     def export_agent(self, file_path: str, params: dict):
         data = {
             "class": self.__class__.__name__,
@@ -46,5 +45,9 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def play(self, state_history: StateHistory, args: dict):
+    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict):
+        pass
+
+    @abstractmethod
+    def name(self) -> str:
         pass
