@@ -3,8 +3,6 @@ from typing import List, Callable, Tuple
 class State:
 
     def __init__(self, k : int, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
-        if not isinstance(k, int):
-            raise TypeError(f"State.__init__: expected int for k, got {type(k).__name__}")
         self.k = k
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1

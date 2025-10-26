@@ -16,11 +16,11 @@ class TabularAgent(Agent):
         states = get_states(k)
         self.q = {(s, a): 0 for s in states for a in get_actions(k, s)}
 
-    def play(self, state_history: StateHistory, args: dict):
+    def play(self, state_history: StateHistory, args: dict) -> int:
         action = self.get_greedy_action(state_history.top())
         return action
     
-    def _serialize(self, params: dict):
+    def _serialize(self, params: dict) -> dict:
         return {
             "q": {
                 str(([card for card in state.get_cards(0)] + [card for card in state.get_cards(1)], action)): value
@@ -74,7 +74,7 @@ class TabularAgent(Agent):
                 reward = get_reward(next_state)
                 self.q[(state, action)] += learning_rate * (reward + discount_factor * next_state_value - self.q[(state, action)])
     
-    def get_greedy_action(self, state: State):
+    def get_greedy_action(self, state: State) -> int:
         actions = get_actions(self.k, state)
         q_values = [self.q[(state, a)] for a in actions]
         max_q = max(q_values)

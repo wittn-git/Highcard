@@ -19,11 +19,11 @@ class DQNAgent(Agent):
         self.model = NeuralNetwork(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
 
-    def play(self, state_history: StateHistory, args: dict):
+    def play(self, state_history: StateHistory, args: dict) -> int:
         action = self.get_greedy_action(state_history.top())
         return action
     
-    def _serialize(self, params: dict):
+    def _serialize(self, params: dict) -> dict:
         # Convert tensor values to lists for JSON serialization
         state_dict = self.model.state_dict()
         serializable_state_dict = {k: v.tolist() for k, v in state_dict.items()}
