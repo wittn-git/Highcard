@@ -8,6 +8,7 @@ from training.src.agents.abstract.agent_deep import DeepAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
 
 from typing import Type
+import random
 from prettytable import PrettyTable
 import torch
 
@@ -18,7 +19,9 @@ class DQNAgent(DeepAgent):
         super().__init__(k)
         self.model = FFNet(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
-    
+
+    # Serialization methods
+
     def _serialize(self, params: dict) -> dict:
         # Convert tensor values to lists for JSON serialization
         state_dict = self.model.state_dict()
@@ -39,13 +42,24 @@ class DQNAgent(DeepAgent):
         state_dict = {k: torch.tensor(v) for k, v in payload["model_state_dict"].items()}
         agent.model.load_state_dict(state_dict)
         return agent, params
+    
+    # Playing methods
 
-    def transform_state_to_input(self, state: State) -> torch.Tensor:
-        player_0_cards, player_1_cards = state.get_cards(0), state.get_cards(1)
-        p0_encoding = [1 if card in player_0_cards else 0 for card in range(self.k)]
-        p1_encoding = [1 if card in player_1_cards else 0 for card in range(self.k)]
-        input = p0_encoding + p1_encoding
-        return torch.tensor(input, dtype=torch.float32).unsqueeze(0)
+    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        state = state_history.top(player_id)
+        return self.get_greedy_action(state)
+    
+    def play_eps_greedy(self, state: State, epsilon: float) -> int:
+        if random.random() < epsilon:
+            return random.choice(get_actions(self.k, state))
+        return self.get_greedy_action(state)
+
+    def get_greedy_action(self, state: State) -> int:
+        input = self.transform_state_to_input(state)
+        q_values = self.model.apply(input)
+        return self.get_best_action(state, q_values)[0]
+    
+    # Training method
 
     def train(
         self, 
