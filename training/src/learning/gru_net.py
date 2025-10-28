@@ -8,7 +8,7 @@ class GRUNet(nn.Module):
         super(GRUNet, self).__init__()
         self.gru = nn.GRU(
             input_size=input_shape,
-            hidden_size=output_shape,
+            hidden_size=hidden_size,
             num_layers=hidden_layers_n,
             batch_first=True,
         )
