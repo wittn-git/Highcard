@@ -1,8 +1,8 @@
 from training.src.game.classes import Player, State, StateHistory
 from training.src.game.playing import play_round
 from training.src.game.game_helpers import get_reward, get_actions, get_states
-from training.src.agents.agent import Agent, register_agent
-from training.src.agents.agent_STRAT import StrategyAgent
+from training.src.agents.abstract.agent import Agent, register_agent
+from training.src.agents.concrete.agent_STRAT import StrategyAgent
 
 from typing import Type
 from prettytable import PrettyTable

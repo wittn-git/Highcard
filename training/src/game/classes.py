@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from training.src.agents.agent import Agent
+    from training.src.agents.abstract.agent import Agent
 
 class State:
 

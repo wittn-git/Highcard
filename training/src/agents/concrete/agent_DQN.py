@@ -1,28 +1,23 @@
 from training.src.game.classes import Player, State, StateHistory
 from training.src.game.playing import play_trick
-from training.src.learning.neural_nets import NeuralNetwork
-from training.src.learning.replay_buffer import ReplayBuffer
+from training.src.learning.ff_net import FFNet
+from training.src.other.replay_buffer import ReplayBuffer
 from training.src.game.game_helpers import get_reward, get_actions, get_states
-from training.src.agents.agent import register_agent, Agent
-from training.src.agents.agent_STRAT import StrategyAgent
+from training.src.agents.abstract.agent import register_agent, Agent
+from training.src.agents.abstract.agent_deep import DeepAgent
+from training.src.agents.concrete.agent_STRAT import StrategyAgent
 
-from typing import Callable, Type
+from typing import Type
 from prettytable import PrettyTable
-import numpy as np
-import random
 import torch
 
 @register_agent
-class DQNAgent(Agent):
+class DQNAgent(DeepAgent):
 
     def __init__(self, k: int, hidden_sizes: tuple[int, int]):
         super().__init__(k)
-        self.model = NeuralNetwork(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
+        self.model = FFNet(input_shape=k*2, output_shape=k, hidden_sizes=hidden_sizes)
         self.hidden_sizes = hidden_sizes
-
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
-        state = state_history.top(player_id)
-        return self.get_greedy_action(state)
     
     def _serialize(self, params: dict) -> dict:
         # Convert tensor values to lists for JSON serialization
@@ -52,23 +47,6 @@ class DQNAgent(Agent):
         input = p0_encoding + p1_encoding
         return torch.tensor(input, dtype=torch.float32).unsqueeze(0)
 
-    def play_eps_greedy(self, state: State, epsilon: float) -> int:
-        if random.random() < epsilon:
-            return random.choice(get_actions(self.k, state))
-        return self.get_greedy_action(state)
-
-    def get_greedy_action(self, state: State) -> int:
-        input = self.transform_state_to_input(state)
-        q_values = self.model.apply(input)
-        return self.get_best_action(state, q_values)[0]
-    
-    def get_best_action(self, state: State, q_values: np.ndarray) -> int:
-        actions = get_actions(self.k, state)
-        action_q_values = {a: q_values[a] for a in actions}
-        max_q = max(action_q_values.values())
-        max_actions = [a for a, q in action_q_values.items() if q == max_q]
-        return random.choice(max_actions), max_q
-
     def train(
         self, 
         epochs: int, 
@@ -81,7 +59,7 @@ class DQNAgent(Agent):
         adversarial_agent: Agent,
     ):
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
-        temp_model = NeuralNetwork(input_shape=self.k * 2, output_shape=self.k, hidden_sizes=self.hidden_sizes)
+        temp_model = FFNet(input_shape=self.k * 2, output_shape=self.k, hidden_sizes=self.hidden_sizes)
         
         def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
             return self.play_eps_greedy(state_history.top(), epsilon)
@@ -89,11 +67,11 @@ class DQNAgent(Agent):
         player = Player(id=0, k=self.k, agent=StrategyAgent(self.k, agent_strategy))
         opp_player = Player(id=1, k=self.k, agent=adversarial_agent)
 
-        state_history= StateHistory(self.k)   # initial empty state
+        state_history= StateHistory(self.k)
         round = 0
 
         for t in range(epochs):
-            #print(f"Epoch {t+1}/{epochs}", end="\r")
+            print(f"Epoch {t+1}/{epochs}", end="\r")
 
             # reset game if terminal state
             if state_history.is_terminal():
@@ -120,7 +98,6 @@ class DQNAgent(Agent):
             for state_, action_, reward_, next_state_, done_ in minibatch:
                 
                 # compute target
-                #print(state_, action_, reward_, next_state_, done_)
                 target = reward_
                 if not done_:
                     q_values_next = temp_model.apply(self.transform_state_to_input(next_state_))

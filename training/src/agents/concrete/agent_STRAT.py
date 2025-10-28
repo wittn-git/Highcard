@@ -1,5 +1,5 @@
 from training.src.game.classes import Player, StateHistory
-from training.src.agents.agent import Agent, register_agent
+from training.src.agents.abstract.agent import Agent, register_agent
 from training.src.game.strategies import *
 
 from typing import List, Callable, Type

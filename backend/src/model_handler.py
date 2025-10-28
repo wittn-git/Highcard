@@ -1,11 +1,11 @@
-from training.src.agents.agent import Agent
+from training.src.agents.abstract.agent import Agent
 from training.src.game.classes import Player, State, StateHistory
 from backend.src.options import MODEL_MAPPING
 
 # imports neccessary for agent registration
-from training.src.agents.agent_DQN import DQNAgent
-from training.src.agents.agent_STRAT import StrategyAgent
-from training.src.agents.agent_PI import TabularAgent
+from training.src.agents.concrete.agent_DQN import DQNAgent
+from training.src.agents.concrete.agent_STRAT import StrategyAgent
+from training.src.agents.concrete.agent_PI import TabularAgent
 
 from typing import Callable
 

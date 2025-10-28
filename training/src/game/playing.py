@@ -1,5 +1,5 @@
 from training.src.game.classes import Player, State, StateHistory
-from training.src.agents.agent import Agent
+from training.src.agents.abstract.agent import Agent
 
 def play_trick(player_1: Player, player_2: Player, state_history: StateHistory, show: bool = False):
     card_1 = player_1.play(state_history, {"player_id": 0})

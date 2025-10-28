@@ -1,5 +1,5 @@
 from training.src.game.classes import Player, StateHistory
-from training.src.agents.agent import Agent
+from training.src.agents.abstract.agent import Agent
 
 from typing import Callable
 import time
