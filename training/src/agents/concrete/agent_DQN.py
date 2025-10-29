@@ -46,7 +46,7 @@ class DQNAgent(DeepAgent):
     
     # Playing methods
 
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+    def play(self, cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
         state = state_history.top(player_id)
         return self.get_greedy_action(state)
     
@@ -71,7 +71,7 @@ class DQNAgent(DeepAgent):
         replay_buffer_capacity: int,
         update_interval: int,
         minibatch_size: int,
-        seed : int,
+        seed: int,
         adversarial_agent: Agent,
     ):
         
@@ -80,7 +80,7 @@ class DQNAgent(DeepAgent):
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
         temp_model = FFNet(input_shape=self.k * 2, output_shape=self.k, hidden_sizes=self.hidden_sizes)
         
-        def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        def agent_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
             return self.play_eps_greedy(state_history.top(), epsilon)
         
         player = Player(id=0, k=self.k, agent=StrategyAgent(self.k, agent_strategy))

@@ -94,7 +94,7 @@ def train_gru_agent(
 def compare_agent(
         k: int,
         file_name: str, 
-        adversarial_strategies : list[Callable[[Player, StateHistory], int]],
+        adversarial_strategies: list[Callable[[Player, StateHistory], int]],
 ):
     agent, _ = Agent.import_agent(file_name, k)  
     compare_strategies(k, agent, adversarial_strategies)

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 class State:
 
-    def __init__(self, k : int, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
+    def __init__(self, k: int, cards_p0: Tuple[int] = (), cards_p1: Tuple[int] = ()):
         self.k = k
         self.cards_p0 = cards_p0
         self.cards_p1 = cards_p1
@@ -105,7 +105,7 @@ class State:
 
 class StateHistory:
     
-    def __init__(self, k : int, state: State = None, max_size : int = 100):
+    def __init__(self, k: int, state: State = None, max_size: int = 100):
         self.history: List[State] = [State(k)]
         self.max_size = max_size
         if state is not None:
@@ -126,7 +126,7 @@ class StateHistory:
             return False
         return self.top().is_terminal()
     
-    def top(self, player_id : int = 0) -> State:
+    def top(self, player_id: int = 0) -> State:
         state = self.history[-1]
         if player_id == 1:
             return state.get_symmetric_state()
@@ -144,7 +144,7 @@ class StateHistory:
     
 class Player:
 
-    def __init__(self, id: int, k: int, agent : Agent, cards: list[int] = None):
+    def __init__(self, id: int, k: int, agent: Agent, cards: list[int] = None):
         self.id = id
         self.k = k
         self.agent = agent

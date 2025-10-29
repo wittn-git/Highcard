@@ -18,7 +18,7 @@ class TabularAgent(Agent):
         states = get_states(k)
         self.q = {(s, a): 0 for s in states for a in get_actions(k, s)}
 
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+    def play(self, cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
         state = state_history.top(player_id)
         return self.get_greedy_action(state)
     
@@ -57,12 +57,12 @@ class TabularAgent(Agent):
             epsilon: float, 
             learning_rate: float, 
             discount_factor: float, 
-            seed : int,
+            seed: int,
             adversarial_agent: Agent
     ):  
         seed_rnd(seed)
         state_history = StateHistory(self.k)
-        def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        def agent_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
                 return self.play_eps_greedy(state_history.top(), epsilon)
         player_0, player_1 = Player(0, self.k, StrategyAgent(self.k, agent_strategy)), Player(1, self.k, adversarial_agent)
         for t in range(epochs):

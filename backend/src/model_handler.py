@@ -18,7 +18,7 @@ def load_model(model_name: str, k: int) -> Callable[[Player, StateHistory], int]
     _state_history = StateHistory(k)
     return _loaded_agent
 
-def get_state(k : int, table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
+def get_state(k: int, table_cards: list[int], opp_table_cards: list[int], omit_player_0_last: bool) -> State:
     if omit_player_0_last:
         table_cards = table_cards[:-1]
     state = State(k, tuple([card - 1 for card in table_cards]), tuple([card - 1 for card in opp_table_cards]))

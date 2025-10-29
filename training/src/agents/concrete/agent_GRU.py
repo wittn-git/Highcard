@@ -15,7 +15,7 @@ import torch
 @register_agent
 class GRUAgent(DeepAgent):
 
-    def __init__(self, k: int, layer_n : int, hidden_size: int):
+    def __init__(self, k: int, layer_n: int, hidden_size: int):
         super().__init__(k)
         self.model = GRUNet(input_shape=k*2, output_shape=k, layer_n=layer_n, hidden_size=hidden_size)
         self.layer_n, self.hidden_size = layer_n, hidden_size
@@ -48,7 +48,7 @@ class GRUAgent(DeepAgent):
     
     # Playing methods
 
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+    def play(self, cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
         state = state_history.top(player_id)
         return self.get_greedy_action(state)
     
@@ -73,7 +73,7 @@ class GRUAgent(DeepAgent):
         replay_buffer_capacity: int,
         update_interval: int,
         minibatch_size: int,
-        seed : int,
+        seed: int,
         adversarial_agent: Agent,
     ):
         
@@ -83,7 +83,7 @@ class GRUAgent(DeepAgent):
         temp_model = GRUNet(input_shape=self.k * 2, output_shape=self.k, layer_n=self.layer_n, hidden_size=self.hidden_size)
         temp_hidden_state = None
 
-        def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+        def agent_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
             return self.play_eps_greedy(state_history.top(), epsilon)
         
         player = Player(id=0, k=self.k, agent=StrategyAgent(self.k, agent_strategy))

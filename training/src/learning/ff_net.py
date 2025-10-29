@@ -5,7 +5,7 @@ from typing import Type
 
 class FFNet(nn.Module):
 
-    def __init__(self, input_shape : int, output_shape : int, hidden_sizes : tuple[int, int] = (256,256), activation : Type[nn.Module] = nn.ReLU):
+    def __init__(self, input_shape: int, output_shape: int, hidden_sizes: tuple[int, int] = (256,256), activation: Type[nn.Module] = nn.ReLU):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(input_shape, hidden_sizes[0]),

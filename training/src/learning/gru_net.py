@@ -4,7 +4,7 @@ import torch.optim as optim
 
 class GRUNet(nn.Module):
 
-    def __init__(self, input_shape : int, output_shape : int, hidden_size : int, layer_n : int):
+    def __init__(self, input_shape: int, output_shape: int, hidden_size: int, layer_n: int):
         super(GRUNet, self).__init__()
         self.layer_n = layer_n
         self.hidden_size = hidden_size
@@ -17,12 +17,12 @@ class GRUNet(nn.Module):
         self.fc = nn.Linear(hidden_size, output_shape)
         self.loss_fn = nn.MSELoss()
     
-    def apply(self, input: torch.Tensor, hidden : torch.Tensor = None):
+    def apply(self, input: torch.Tensor, hidden: torch.Tensor = None):
         with torch.no_grad():
             out, hidden = self.forward(input, hidden)
             return out.detach().numpy().flatten(), hidden
 
-    def forward(self, x_step : torch.Tensor, hidden : torch.Tensor = None):
+    def forward(self, x_step: torch.Tensor, hidden: torch.Tensor = None):
         """
         Perform a forward pass for one step.
         - x_step: shape (input_size,) or (batch, input_size)
@@ -41,7 +41,7 @@ class GRUNet(nn.Module):
 
         return out, hidden
 
-    def train_step(self, sequence : torch.Tensor, target : torch.Tensor, learning_rate : float = 1e-3):
+    def train_step(self, sequence: torch.Tensor, target: torch.Tensor, learning_rate: float = 1e-3):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate) # TODO optimize this for batch learning
         prediction, _ = self.forward(sequence)
         target = target.detach()

@@ -12,7 +12,7 @@ class StrategyAgent(Agent):
         super().__init__(k)
         self.strategy = strategy
 
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+    def play(self, cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
         return self.strategy(cards, state_history, player_id, args)
     
     def _serialize(self, params: dict):

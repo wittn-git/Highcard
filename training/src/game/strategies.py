@@ -4,22 +4,22 @@ import random
 
 random.seed(42)
 
-def random_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def random_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     return random.choice(cards)
 
-def highest_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def highest_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     return max(cards)
 
-def lowest_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def lowest_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     return min(cards)
 
-def alternating_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def alternating_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     state = state_history.top()
     if state.get_ncards() % 2:
         return lowest_strategy(cards, state, args)
     return highest_strategy(cards, state, args)
 
-def copying_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def copying_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     state = state_history.top()
     if state.get_ncards() == 0:
         return highest_strategy(cards, state, args)
@@ -28,7 +28,7 @@ def copying_strategy(cards : list[int], state_history: StateHistory, player_id :
         return last_card_adversial
     return highest_strategy(cards, state, args)
 
-def pool_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
+def pool_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     strategies = [
         highest_strategy,
         lowest_strategy,

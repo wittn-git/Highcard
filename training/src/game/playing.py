@@ -17,7 +17,7 @@ def play_round(
         player_0: Player,
         player_1: Player,
         state_history: StateHistory = None,
-        reset : bool = True,
+        reset: bool = True,
         show: bool = False
     ) -> StateHistory:
 

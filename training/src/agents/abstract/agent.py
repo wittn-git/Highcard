@@ -45,7 +45,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def play(self, cards : list[int], state_history: StateHistory, player_id : int, args: dict):
+    def play(self, cards: list[int], state_history: StateHistory, player_id: int, args: dict):
         pass
 
     @abstractmethod
