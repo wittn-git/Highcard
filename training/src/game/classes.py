@@ -105,7 +105,7 @@ class State:
 
 class StateHistory:
     
-    def __init__(self, k : int, max_size : int = 100, state: State = None):
+    def __init__(self, k : int, state: State = None, max_size : int = 100):
         self.history: List[State] = [State(k)]
         self.max_size = max_size
         if state is not None:
