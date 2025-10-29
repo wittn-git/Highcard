@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # render latex table
     file_path_rendered_tex, file_path_rendered_pdf = get_filepath_rendered(file_path_result, "tex"), get_filepath_rendered(file_path_result, "pdf")
     convert_to_latex(df, file_path_rendered_tex)
-    render_latex_table(file_path_rendered_tex, file_path_rendered_pdf)
+    # render_latex_table(file_path_rendered_tex, file_path_rendered_pdf)
 
     # run experiments for comparison to optimal strategies
     # TODO implement

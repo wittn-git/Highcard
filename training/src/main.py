@@ -5,7 +5,7 @@ from training.src.agents.concrete.agent_STRAT import StrategyAgent
 from training.src.agents.concrete.agent_GRU import GRUAgent
 from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
-from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
+from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy, copying_strategy
 from training.src.io.file_handling import get_file_name
 from training.src.other.backwards_induction import compare_strategies
 
@@ -25,8 +25,9 @@ def train_tabular_agent(
        seed=params["seed"],
        adversarial_agent=adversarial_agent
     )
-    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
-    return agent
+    file_name = get_file_name(agent, k, adversarial_agent)
+    agent.export_agent(file_name, params)
+    return file_name
 
 def train_dqn_agent(
         k: int, 
@@ -45,31 +46,9 @@ def train_dqn_agent(
         seed=params["seed"],
         adversarial_agent=adversarial_agent
     )
-    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
-    return agent
-
-def train_strategy_agent(
-        k: int, 
-        strategy: Callable[[Player, StateHistory], int]
-) -> Agent:
-    agent = StrategyAgent(k, strategy)
-    agent.export_agent(get_file_name(agent, k, strategy), {})
-    return agent
-
-def test_agent(
-        k: int,
-        file_name: str, 
-        evaluation_rounds: int, 
-        adversarial_agent: Agent,
-) -> Agent:
-    agent, _ = Agent.import_agent(file_name, k)
-    results = play_rounds(evaluation_rounds, k, agent, adversarial_agent)
-    print("-------------------------------")
-    print("Results after", evaluation_rounds, "rounds:")
-    print("Player 1 wins:", results[0])
-    print("Player 2 wins:", results[1])
-    print("Draws:", results[2])
-    return agent
+    file_name = get_file_name(agent, k, adversarial_agent)
+    agent.export_agent(file_name, params)
+    return file_name
 
 def train_gru_agent(
         k: int, 
@@ -88,7 +67,32 @@ def train_gru_agent(
         seed=params["seed"],
         adversarial_agent=adversarial_agent
     )
-    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
+    file_name = get_file_name(agent, k, adversarial_agent)
+    agent.export_agent(file_name, params)
+    return file_name
+
+def train_strategy_agent(
+        k: int, 
+        strategy: Callable[[Player, StateHistory], int]
+) -> Agent:
+    agent = StrategyAgent(k, strategy)
+    file_name = get_file_name(agent, k, agent)
+    agent.export_agent(file_name, {})
+    return file_name
+
+def test_agent(
+        k: int,
+        file_name: str, 
+        evaluation_rounds: int, 
+        adversarial_agent: Agent,
+) -> Agent:
+    agent, _ = Agent.import_agent(file_name, k)
+    results = play_rounds(evaluation_rounds, k, agent, adversarial_agent)
+    print("-------------------------------")
+    print("Results after", evaluation_rounds, "rounds:")
+    print("Player 0 wins:", results[0])
+    print("Player 1 wins:", results[1])
+    print("Draws:", results[2])
     return agent
 
 def compare_agent(
@@ -102,32 +106,32 @@ def compare_agent(
 if __name__ == "__main__":
 
     k = 5
-    adversarial_strategy = highest_strategy
+    adversarial_strategy = copying_strategy
     
-    # params_tabular = {
-    #     "epochs": 5000,
-    #     "learning_rate": 0.1,
-    #     "discount_factor": 1,
-    #     "epsilon": 0.1,
-    #     "seed": 43
-    # }
-    # train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
+    params_tabular = {
+        "epochs": 5000,
+        "learning_rate": 0.1,
+        "discount_factor": 1,
+        "epsilon": 0.1,
+        "seed": 43
+    }
+    file_name = train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
     
-    # params_dqn = {
-    #     "epochs": 5000,
-    #     "learning_rate": 0.25,
-    #     "discount_factor": 1,
-    #     "epsilon": 0.1,
-    #     "replay_buffer_capacity": 64,
-    #     "update_interval": 20,
-    #     "minibatch_size": 32,
-    #     "hidden_sizes": (8, 8),
-    #     "seed": 43
-    # }
-    # train_dqn_agent(k, StrategyAgent(k, adversarial_strategy), params_dqn)
+    params_dqn = {
+        "epochs": 5000,
+        "learning_rate": 0.25,
+        "discount_factor": 1,
+        "epsilon": 0.1,
+        "replay_buffer_capacity": 64,
+        "update_interval": 20,
+        "minibatch_size": 32,
+        "hidden_sizes": (8, 8),
+        "seed": 43
+    }
+    file_name = train_dqn_agent(k, StrategyAgent(k, adversarial_strategy), params_dqn)
 
     params_gru = {
-        "epochs": 1000,
+        "epochs": 5000,
         "learning_rate": 0.1,
         "discount_factor": 1,
         "epsilon": 0.1,
@@ -138,9 +142,9 @@ if __name__ == "__main__":
         "layer_n": 1,
         "seed": 43
     }
-    train_gru_agent(k, StrategyAgent(k, adversarial_strategy), params_gru)
+    file_name = train_gru_agent(k, StrategyAgent(k, adversarial_strategy), params_gru)
 
-    # train_strategy_agent(k, adversarial_strategy)
+    file_name = train_strategy_agent(k, adversarial_strategy)
 
     # test_agent(k, file_name, 100, StrategyAgent(k, adversarial_strategy))
 

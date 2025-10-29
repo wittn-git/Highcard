@@ -3,53 +3,70 @@ import subprocess
 import os
 
 def convert_to_latex(df: pd.DataFrame, output_file_path: str):
-    attributes = ["W", "T", "L"]
+
     all_tables_content = []
 
-    for attribute in attributes:
+    column_groups = ["adversarial_strategy_test", "k"]
+    index_groups = ["model", "adversarial_strategy_train"]
 
-        # process dataframes
-        grouped = df.groupby(["model", "adversarial_strategy", "k"])[attribute].mean().reset_index()
-        pivoted = grouped.pivot(index="model", columns=["adversarial_strategy", "k"], values=attribute)
+    for attribute in ["win_rate", "tie_rate", "loss_rate"]:
+
+        # preprocess dataframes
+        grouped = df.groupby(index_groups + column_groups)[attribute].mean().reset_index()
+        pivoted = grouped.pivot(index=index_groups, columns=column_groups, values=attribute)
         pivoted_formatted = pivoted.map(lambda x: f"{x:.3f}")
         
-        # get column specifications
-        adversarial_strategies = pivoted.columns.get_level_values(0).unique().tolist()
+        # define column specs
+        test_strategies = pivoted.columns.get_level_values(0).unique().tolist()
         k_values = pivoted.columns.get_level_values(1).unique().tolist()
         num_k = len(k_values)
-        num_cols = 1 + len(adversarial_strategies) * num_k
-        column_spec = "l" + "c" * (num_cols - 1)
+        num_test_strategies = len(test_strategies)
+        num_data_cols = num_test_strategies * num_k
+        column_spec = "ll|" + "c" * num_data_cols
         
-        # construct headers
-        header_1_parts = ["\\multicolumn{1}{c}{\\textbf{Model}}"]
-        for strategy in adversarial_strategies:
+        # construct header rows
+        header_1_parts = ["\\multicolumn{2}{c|}{}"]
+        for strategy in test_strategies:
             header_1_parts.append(f"\\multicolumn{{{num_k}}}{{c}}{{\\textbf{{{strategy}}}}}\n")
-        header_1_base = " & ".join(header_1_parts) + " \\\\" 
+
+        header_1_base = " & ".join(header_1_parts).strip() + " \\\\"
         cmidrule_parts = []
-        current_col = 2 
-        for _ in adversarial_strategies:
+        current_col = 3
+        for _ in test_strategies:
             end_col = current_col + num_k - 1
             cmidrule_parts.append(f"\\cmidrule(lr){{{current_col}-{end_col}}}")
             current_col = end_col + 1
         header_1 = header_1_base + " " + "".join(cmidrule_parts)
-        header_2_parts = [""]
-        for _ in adversarial_strategies:
+        header_2_parts = ["\\textbf{Model}", "\\textbf{Training}"] # The two index columns
+        for _ in test_strategies:
             header_2_parts.extend([f"{{$k={k}$}}" for k in k_values])
-        header_2 = " & ".join(header_2_parts) + " \\\\ \\midrule\n"
-
+        header_2 = " & ".join(header_2_parts) + " \\\\ \\midrule"
+        
         # construct table content
         latex_output = []
-        col_order = [(c, k) for c in adversarial_strategies for k in k_values]
-        for model in pivoted_formatted.index:
-            row_parts = [model]
-            flat_row = [pivoted_formatted.loc[model, (c, k)] for c, k in col_order]
+        col_order = [(c, k) for c in test_strategies for k in k_values]
+        prev_model = None
+        for (model, train_strategy) in pivoted_formatted.index:
+            is_new_model = (model != prev_model)
+            if is_new_model and prev_model is not None:
+                latex_output.append("\\midrule")
+            row_parts = []
+            if is_new_model:
+                row_parts.append(f"\\textbf{{{model}}}")
+            else:
+                row_parts.append("") 
+            row_parts.append(f"\\multicolumn{{{1}}}{{{'|l|'}}}{{\\textit{{{train_strategy}}}}}")
+            flat_row = [pivoted_formatted.loc[(model, train_strategy), (c, k)] for c, k in col_order]
             row_parts.extend(flat_row)
             latex_output.append(" & ".join(row_parts) + " \\\\")
+            
+            prev_model = model
+
         table_content = "\n".join(latex_output)
 
-        # assemble full table
+        # assemble Single Table
         single_table = f"""
-\\subsection*{{{attribute}}}
+\\subsection*{{{attribute.replace('_', '\\_')}}}
 \\begin{{table}}[ht]
     \\centering
     \\begin{{tabular}}{{{column_spec}}}
@@ -62,20 +79,21 @@ def convert_to_latex(df: pd.DataFrame, output_file_path: str):
 \\end{{table}}
 """
         all_tables_content.append(single_table)
-    
-    # assemble full document
+        
+    # assemble Full Document
     full_latex = f"""\\documentclass{{article}}
 \\usepackage{{booktabs}}
 \\usepackage{{amsmath}}
+\\usepackage[a4paper, margin=1in]{{geometry}}
+\\usepackage{{times}}
 
 \\begin{{document}}
-
 \\section*{{Combined Experimental Results}}
 {chr(10).join(all_tables_content)}
 
 \\end{{document}}"""
 
-    # write to file
+    # write to File
     with open(output_file_path, 'w') as f:
         f.write(full_latex)
 
