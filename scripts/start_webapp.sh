@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ..
-
 if [ -z ${VIRTUAL_ENV} ]; then 
     source venv/bin/activate
 fi
