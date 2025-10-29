@@ -16,17 +16,17 @@ def lowest_strategy(cards: list[int], state_history: StateHistory, player_id: in
 def alternating_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     state = state_history.top()
     if state.get_ncards() % 2:
-        return lowest_strategy(cards, state, args)
-    return highest_strategy(cards, state, args)
+        return lowest_strategy(cards, state, player_id, args)
+    return highest_strategy(cards, state, player_id, args)
 
 def copying_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     state = state_history.top()
     if state.get_ncards() == 0:
-        return highest_strategy(cards, state, args)
+        return highest_strategy(cards, state, player_id, args)
     last_card_adversial = state.get_cards(1-player_id)[-1]
     if last_card_adversial in cards:
         return last_card_adversial
-    return highest_strategy(cards, state, args)
+    return highest_strategy(cards, state, player_id, args)
 
 def pool_strategy(cards: list[int], state_history: StateHistory, player_id: int, args: dict) -> int:
     strategies = [
@@ -36,4 +36,4 @@ def pool_strategy(cards: list[int], state_history: StateHistory, player_id: int,
         copying_strategy
     ]
     selected_strategy = random.choice(strategies)
-    return selected_strategy(cards, state_history, args)
+    return selected_strategy(cards, state_history, player_id, args)

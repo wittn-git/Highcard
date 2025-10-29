@@ -12,16 +12,19 @@ const oppTableCards = ref([])
 
 // UI state variables
 const showCardPopup = ref(true)
+const showAdversarialPopup = ref(false)
 const showModelPopup = ref(false)
 const showWinnerPopup = ref(false)
 
 // PopUp options
 const cardOptions = ref([])
+const adversarialOptions = ref([])
 const modelOptions = ref([])
 const winner = ref([])
 
 // PopUp selection
 const selectedCardCount = ref(null)
+const selectedAdversarial = ref(null)
 
 // --- API helpers ---
 const API_BASE = 'http://localhost:5000'
@@ -50,13 +53,20 @@ onMounted(async () => {
 async function chooseCardCount(count) {
   selectedCardCount.value = count
   showCardPopup.value = false
+  showAdversarialPopup.value = true
+  adversarialOptions.value = await fetchJson(`${API_BASE}/options/adversarials?cards=${count}`)
+}
+
+async function chooseAdversarial(adversarial) {
+  selectedAdversarial.value = adversarial
+  showAdversarialPopup.value = false
   showModelPopup.value = true
-  modelOptions.value = await fetchJson(`${API_BASE}/options/models?cards=${count}`)
+  modelOptions.value = await fetchJson(`${API_BASE}/options/models?cards=${selectedCardCount.value}&adversarial=${selectedAdversarial.value}`)
 }
 
 async function chooseModel(model) {
+  await postJson(`${API_BASE}/modelload`, {model: model, cardCount: selectedCardCount.value, adversarial: selectedAdversarial.value})
   showModelPopup.value = false
-  await postJson(`${API_BASE}/modelload`, {model: model, cardCount: selectedCardCount.value})
   initGame()
 }
 
@@ -122,6 +132,14 @@ async function playCard(index) {
     @select="chooseCardCount"
   />
 
+  <!-- Adversarial selection -->
+  <SelectionPopup
+    v-if="showAdversarialPopup"
+    title="Select Adversarial Type"
+    :options="adversarialOptions"
+    @select="chooseAdversarial"
+  />
+
   <!-- Model selection -->
   <SelectionPopup
     v-if="showModelPopup"
@@ -131,7 +149,7 @@ async function playCard(index) {
   />
 
   <!-- Game board -->
-  <div v-if="!showCardPopup && !showModelPopup && !showWinnerPopup">
+  <div v-if="!showCardPopup && !showAdversarialPopup && !showModelPopup && !showWinnerPopup">
     <CardContainer :cards="oppHandCards" position="top" hidden />
     <TableCards :tableCards="tableCards" :oppTableCards="oppTableCards" />
     <CardContainer :cards="handCards" position="bottom" @card-click="playCard" />

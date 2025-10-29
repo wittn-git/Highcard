@@ -6,14 +6,15 @@ from backend.src.options import get_model_path
 from training.src.agents.concrete.agent_DQN import DQNAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
 from training.src.agents.concrete.agent_PI import TabularAgent
+from training.src.agents.concrete.agent_GRU import GRUAgent
 
 from typing import Callable
 
 _loaded_agent, _state_history = None, None
 
-def load_model(model_name: str, k: int) -> Callable[[Player, StateHistory], int]:
+def load_model(model_name: str, k: int, adversarial: str) -> Callable[[Player, StateHistory], int]:
     global _loaded_agent, _state_history
-    model_path = get_model_path(k, model_name)
+    model_path = get_model_path(k, adversarial, model_name)
     _loaded_agent, _ = Agent.import_agent(model_path, k)
     _state_history = StateHistory(k)
     return _loaded_agent

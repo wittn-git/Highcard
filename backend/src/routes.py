@@ -1,4 +1,4 @@
-from backend.src.options import list_card_counts, list_model_options
+from backend.src.options import list_card_counts, list_model_options, list_adversarial_options
 from backend.src.model_handler import play_card, extract_winner, load_model
 
 from flask import Blueprint, jsonify, request
@@ -10,12 +10,22 @@ def get_card_options():
     card_options = list_card_counts()
     return jsonify(card_options)
 
-@routes.route("/options/models", methods=["GET"])
-def get_model_options():
+@routes.route("/options/adversarials", methods=["GET"])
+def get_adversarial_options():
     cards_param = request.args.get("cards", type=int)
     if cards_param is None:
         return jsonify({"error": "Missing 'cards' query parameter"}), 400
-    models = list_model_options(cards_param)
+    adversarials = list_adversarial_options(cards_param)
+    print(adversarials)
+    return jsonify(adversarials)
+
+@routes.route("/options/models", methods=["GET"])
+def get_model_options():
+    cards_param = request.args.get("cards", type=int)
+    adversarial_param = request.args.get("adversarial", type=str)
+    if cards_param is None or adversarial_param is None:
+        return jsonify({"error": "Missing 'cards' or 'adversarial' query parameter"}), 400
+    models = list_model_options(cards_param, adversarial_param)
     return jsonify(models)
 
 @routes.route("/play", methods=["GET", "POST"])
@@ -27,7 +37,7 @@ def get_card():
 @routes.route("/modelload", methods=["POST"])
 def set_model():
     data = request.get_json()
-    load_model(data["model"], data["cardCount"])
+    load_model(data["model"], data["cardCount"], data["adversarial"])
     return jsonify({"status": "ok"})
 
 @routes.route("/winner", methods=["GET", "POST"])
