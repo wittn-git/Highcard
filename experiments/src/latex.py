@@ -2,7 +2,9 @@ import pandas as pd
 import subprocess
 import os
 
-def convert_to_latex(df: pd.DataFrame, output_file_path: str):
+def wl_to_tex(df: pd.DataFrame, output_file_path: str):
+
+    # TODO beautify resulting table
 
     all_tables_content = []
 
@@ -97,8 +99,14 @@ def convert_to_latex(df: pd.DataFrame, output_file_path: str):
     with open(output_file_path, 'w') as f:
         f.write(full_latex)
 
+def opt_to_tex(df: pd.DataFrame, output_file_path: str):
+    # TODO implement
+    pass
+
 def render_latex_table(input_file_path: str, output_file_path: str):
     
+    # TODO take care of latex installation
+
     input_dir = os.path.dirname(input_file_path) or '.'
     input_filename = os.path.basename(input_file_path)
     command = [

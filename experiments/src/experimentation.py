@@ -3,6 +3,7 @@ from training.src.util.seeding import set_global_seed
 from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
 from training.src.game.strategies import random_strategy, highest_strategy, copying_strategy, pool_strategy
+from training.src.other.backwards_induction import compare_strategies
 
 # imports neccessary for agent registration
 from training.src.agents.concrete.agent_DQN import DQNAgent
@@ -21,7 +22,7 @@ def run_wl_experiments(n_evals : int, n_repeated_games : int) -> pd.DataFrame:
     data = []
 
     ks = list_card_counts()
-    test_adversarial_strategies = [highest_strategy]
+    test_adversarial_strategies = [copying_strategy, random_strategy, highest_strategy]
 
     for k in ks:
         for strategy in test_adversarial_strategies:
@@ -53,5 +54,36 @@ def run_wl_experiments(n_evals : int, n_repeated_games : int) -> pd.DataFrame:
                             "games": n_repeated_games
                         }
                         data.append(row_data)
+    
+    return pd.DataFrame(data)
+
+def run_opt_experiments(k_limit : int) -> pd.DataFrame:
+
+    data = []
+
+    ks = list_card_counts()
+    adversarial_strategy_pools = [
+        [copying_strategy], 
+        [highest_strategy]
+    ]
+
+    for k in ks:
+        if k > k_limit:
+            continue
+        for train_adversarial_strategy in list_adversarial_options(k):
+            for model_name in list_model_options(k, train_adversarial_strategy):
+                model_path = get_model_path(k, train_adversarial_strategy, model_name)
+                agent, _ = Agent.import_agent(model_path, k)
+                for strategy_pool in adversarial_strategy_pools:
+                    optimal_actions, suboptimal_actions = compare_strategies(k, agent, strategy_pool, verbose=False)
+                    row_data = {
+                        "model": model_name,
+                        "adversarial_strategy_train": train_adversarial_strategy,
+                        "adversarial_strategy_pool": "-".join([s.__name__ for s in strategy_pool]),
+                        "k": k,
+                        "optimal_action_rate": optimal_actions / (optimal_actions + suboptimal_actions),
+                        "total_actions": optimal_actions + suboptimal_actions
+                    }
+                    data.append(row_data)
     
     return pd.DataFrame(data)

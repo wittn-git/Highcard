@@ -24,6 +24,7 @@ def compare_strategies(
     if verbose:
         print(f"Optimal actions taken: {optimal_actions}")
         print(f"Suboptimal actions taken: {suboptimal_actions}")
+    return optimal_actions, suboptimal_actions
 
 def get_dict_from_agent(k: int, agent: Agent, state: State, action_dict: dict[State, int] = {}) -> dict[State, int]:
     if state.is_terminal():

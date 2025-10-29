@@ -5,7 +5,6 @@ from training.src.agents.concrete.agent_GRU import GRUAgent
 from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
 from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
-from training.src.util.seeding import set_global_seed
 from training.src.other.backwards_induction import compare_strategies
 
 import os
