@@ -2,6 +2,7 @@ from training.src.game.classes import Player, StateHistory
 from training.src.agents.concrete.agent_PI import TabularAgent
 from training.src.agents.concrete.agent_DQN import DQNAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
+from training.src.agents.concrete.agent_GRU import GRUAgent
 from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
 from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
@@ -69,6 +70,25 @@ def test_agent(
     print("Draws:", results[2])
     return agent
 
+def train_gru_agent(
+        k: int, 
+        adversarial_agent: Agent,
+        params: dict
+) -> Agent:
+    agent = GRUAgent(k, hidden_size=params["hidden_size"], layer_n=params["layer_n"])
+    agent.train(
+        epochs=params["epochs"], 
+        epsilon=params["epsilon"], 
+        learning_rate=params["learning_rate"], 
+        discount_factor=params["discount_factor"], 
+        replay_buffer_capacity=params["replay_buffer_capacity"],
+        update_interval=params["update_interval"],
+        minibatch_size=params["minibatch_size"],
+        adversarial_agent=adversarial_agent
+    )
+    agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
+    return agent
+
 def compare_agent(
         k: int,
         file_name: str, 
@@ -83,13 +103,13 @@ if __name__ == "__main__":
     k = 5
     adversarial_strategy = highest_strategy
     
-    params_tabular = {
-        "epochs": 5000,
-        "learning_rate": 0.1,
-        "discount_factor": 1,
-        "epsilon": 0.1
-    }
-    train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
+    # params_tabular = {
+    #     "epochs": 5000,
+    #     "learning_rate": 0.1,
+    #     "discount_factor": 1,
+    #     "epsilon": 0.1
+    # }
+    # train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
     
     # params_dqn = {
     #     "epochs": 5000,
@@ -103,9 +123,22 @@ if __name__ == "__main__":
     # }
     # train_dqn_agent(k, StrategyAgent(k, adversarial_strategy), params_dqn)
 
+    params_gru = {
+        "epochs": 1000,
+        "learning_rate": 0.1,
+        "discount_factor": 1,
+        "epsilon": 0.1,
+        "replay_buffer_capacity": 64,
+        "update_interval": 20,
+        "minibatch_size": 32,
+        "hidden_size": 8,
+        "layer_n": 1
+    }
+    train_gru_agent(k, StrategyAgent(k, adversarial_strategy), params_gru)
+
     # train_strategy_agent(k, adversarial_strategy)
 
     # test_agent(k, file_name, 100, StrategyAgent(k, adversarial_strategy))
 
-    # file_name = "/home/wittn/workspace/Highcard/training/models/tabular_highest-strategy_5.json"
+    # file_name = "/home/wittn/workspace/Highcard/training/models/selected/5/tabular_highest-strategy_5.json"
     # compare_agent(k, file_name, agent, [adversarial_strategy])

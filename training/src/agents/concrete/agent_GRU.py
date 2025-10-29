@@ -2,21 +2,21 @@ from training.src.game.classes import Player, State, StateHistory
 from training.src.game.playing import play_trick
 from training.src.learning.gru_net import GRUNet
 from training.src.other.replay_buffer import ReplayBuffer
-from training.src.game.game_helpers import get_reward, get_actions, get_states
+from training.src.game.game_helpers import get_reward, get_actions
 from training.src.agents.abstract.agent import register_agent, Agent
+from training.src.agents.abstract.agent_deep import DeepAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
 
 from typing import Type
-import numpy as np
 import random
 import torch
 
 @register_agent
-class GRUAgent(Agent):
+class GRUAgent(DeepAgent):
 
     def __init__(self, k: int, layer_n : int, hidden_size: int):
         super().__init__(k)
-        self.model = GRUNet(input_shape=k*2, output_shape=k, hidden_size=hidden_size)
+        self.model = GRUNet(input_shape=k*2, output_shape=k, layer_n=layer_n, hidden_size=hidden_size)
         self.layer_n, self.hidden_size = layer_n, hidden_size
         self.hidden_state = None
     
@@ -76,7 +76,7 @@ class GRUAgent(Agent):
     ):
         
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
-        temp_model = GRUAgent(input_shape=self.k * 2, output_shape=self.k, hidden_size=self.hidden_size)
+        temp_model = GRUNet(input_shape=self.k * 2, output_shape=self.k, layer_n=self.layer_n, hidden_size=self.hidden_size)
         temp_hidden_state = None
 
         def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:

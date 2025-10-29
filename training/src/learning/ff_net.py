@@ -24,7 +24,7 @@ class FFNet(nn.Module):
             return self.forward(input).detach().numpy().flatten()
 
     def train_step(self, input: torch.Tensor, target: torch.Tensor, learning_rate: float):
-        optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(self.parameters(), lr=learning_rate) # TODO optimize this for batch learning
         prediction = self.forward(input)
         target = target.detach()
         loss = self.loss_fn(prediction, target)

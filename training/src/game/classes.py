@@ -105,8 +105,9 @@ class State:
 
 class StateHistory:
     
-    def __init__(self, k : int, state: State = None):
+    def __init__(self, k : int, max_size : int = 100, state: State = None):
         self.history: List[State] = [State(k)]
+        self.max_size = max_size
         if state is not None:
             self.push(state)
     
@@ -114,6 +115,8 @@ class StateHistory:
         if not self.is_empty() and not self.top().is_terminal():
             self.history.pop()
         self.history.append(state)
+        if len(self.history) > self.max_size:
+            self.history.pop(0)
     
     def pop(self) -> State:
         return self.history.pop()
