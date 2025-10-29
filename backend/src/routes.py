@@ -1,4 +1,4 @@
-from backend.src.options import CARD_OPTIONS, MODEL_OPTIONS
+from backend.src.options import list_card_counts, list_model_options
 from backend.src.model_handler import play_card, extract_winner, load_model
 
 from flask import Blueprint, jsonify, request
@@ -7,14 +7,15 @@ routes = Blueprint("routes", __name__)
 
 @routes.route("/options/cards", methods=["GET"])
 def get_card_options():
-    return jsonify(CARD_OPTIONS)
+    card_options = list_card_counts()
+    return jsonify(card_options)
 
 @routes.route("/options/models", methods=["GET"])
 def get_model_options():
     cards_param = request.args.get("cards", type=int)
     if cards_param is None:
         return jsonify({"error": "Missing 'cards' query parameter"}), 400
-    models = MODEL_OPTIONS[cards_param]
+    models = list_model_options(cards_param)
     return jsonify(models)
 
 @routes.route("/play", methods=["GET", "POST"])
