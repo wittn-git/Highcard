@@ -3,6 +3,7 @@ from training.src.game.playing import play_round
 from training.src.game.game_helpers import get_reward, get_actions, get_states
 from training.src.agents.abstract.agent import Agent, register_agent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
+from training.src.util.seeding import seed_rnd
 
 from typing import Type
 from prettytable import PrettyTable
@@ -56,8 +57,10 @@ class TabularAgent(Agent):
             epsilon: float, 
             learning_rate: float, 
             discount_factor: float, 
+            seed : int,
             adversarial_agent: Agent
-    ):
+    ):  
+        seed_rnd(seed)
         state_history = StateHistory(self.k)
         def agent_strategy(cards : list[int], state_history: StateHistory, player_id : int, args: dict) -> int:
                 return self.play_eps_greedy(state_history.top(), epsilon)

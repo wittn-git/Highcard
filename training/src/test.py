@@ -1,13 +1,12 @@
 from training.src.agents.concrete.agent_PI import TabularAgent
 from training.src.agents.concrete.agent_DQN import DQNAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
+from training.src.agents.concrete.agent_GRU import GRUAgent
 from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
 from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
-from training.src.util.seeding import seed
+from training.src.util.seeding import seed_rnd
 from training.src.other.backwards_induction import compare_strategies
-
-# TODO
 
 import os
 
@@ -32,6 +31,7 @@ def test_tabular_agent():
         epsilon=0.1,
         learning_rate=0.1,
         discount_factor=1,
+        seed=42,
         adversarial_agent=adversarial_agent
     )
     play_rounds(1, k, agent, adversarial_agent)
@@ -51,11 +51,32 @@ def test_dqn_agent():
         replay_buffer_capacity=64,
         update_interval=20,
         minibatch_size=32,
+        seed=42,
         adversarial_agent=adversarial_agent
     )
     play_rounds(1, k, agent, adversarial_agent)
     agent.export_agent(get_test_filename(), {})
     imported_agent, _ = DQNAgent.import_agent(get_test_filename(), k)
+    play_rounds(1, k, imported_agent, adversarial_agent)
+
+def test_gru_agent():
+    k = 3
+    adversarial_agent = StrategyAgent(k, highest_strategy)
+    agent = GRUAgent(k, layer_n=1, hidden_size=8)
+    agent.train(
+        epochs=10,
+        epsilon=0.1,
+        learning_rate=0.25,
+        discount_factor=1,
+        replay_buffer_capacity=64,
+        update_interval=20,
+        minibatch_size=32,
+        seed=42,
+        adversarial_agent=adversarial_agent
+    )
+    play_rounds(1, k, agent, adversarial_agent)
+    agent.export_agent(get_test_filename(), {})
+    imported_agent, _ = GRUAgent.import_agent(get_test_filename(), k)
     play_rounds(1, k, imported_agent, adversarial_agent)
 
 def test_comparison():
@@ -65,11 +86,10 @@ def test_comparison():
 
 if __name__ == "__main__":
 
-    seed(43)
-
     test_strategy_agent()
     test_tabular_agent()
     test_dqn_agent()
+    test_gru_agent()
 
     test_comparison()
 

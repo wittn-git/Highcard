@@ -6,6 +6,7 @@ from training.src.game.game_helpers import get_reward, get_actions
 from training.src.agents.abstract.agent import register_agent, Agent
 from training.src.agents.abstract.agent_deep import DeepAgent
 from training.src.agents.concrete.agent_STRAT import StrategyAgent
+from training.src.util.seeding import seed_rnd
 
 from typing import Type
 import random
@@ -72,8 +73,11 @@ class GRUAgent(DeepAgent):
         replay_buffer_capacity: int,
         update_interval: int,
         minibatch_size: int,
+        seed : int,
         adversarial_agent: Agent,
     ):
+        
+        seed_rnd(seed)
         
         replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)
         temp_model = GRUNet(input_shape=self.k * 2, output_shape=self.k, layer_n=self.layer_n, hidden_size=self.hidden_size)

@@ -7,7 +7,6 @@ from training.src.agents.abstract.agent import Agent
 from training.src.game.playing import play_rounds
 from training.src.game.strategies import random_strategy, highest_strategy, lowest_strategy
 from training.src.io.file_handling import get_file_name
-from training.src.util.seeding import seed
 from training.src.other.backwards_induction import compare_strategies
 
 from typing import Callable
@@ -23,6 +22,7 @@ def train_tabular_agent(
        epsilon=params["epsilon"],
        learning_rate=params["learning_rate"], 
        discount_factor=params["discount_factor"], 
+       seed=params["seed"],
        adversarial_agent=adversarial_agent
     )
     agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
@@ -42,6 +42,7 @@ def train_dqn_agent(
         replay_buffer_capacity=params["replay_buffer_capacity"],
         update_interval=params["update_interval"],
         minibatch_size=params["minibatch_size"],
+        seed=params["seed"],
         adversarial_agent=adversarial_agent
     )
     agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
@@ -84,6 +85,7 @@ def train_gru_agent(
         replay_buffer_capacity=params["replay_buffer_capacity"],
         update_interval=params["update_interval"],
         minibatch_size=params["minibatch_size"],
+        seed=params["seed"],
         adversarial_agent=adversarial_agent
     )
     agent.export_agent(get_file_name(agent, k, adversarial_agent), params)
@@ -99,7 +101,6 @@ def compare_agent(
 
 if __name__ == "__main__":
 
-    seed(43)
     k = 5
     adversarial_strategy = highest_strategy
     
@@ -107,7 +108,8 @@ if __name__ == "__main__":
     #     "epochs": 5000,
     #     "learning_rate": 0.1,
     #     "discount_factor": 1,
-    #     "epsilon": 0.1
+    #     "epsilon": 0.1,
+    #     "seed": 43
     # }
     # train_tabular_agent(k, StrategyAgent(k, adversarial_strategy), params_tabular)
     
@@ -119,7 +121,8 @@ if __name__ == "__main__":
     #     "replay_buffer_capacity": 64,
     #     "update_interval": 20,
     #     "minibatch_size": 32,
-    #     "hidden_sizes": (8, 8)
+    #     "hidden_sizes": (8, 8),
+    #     "seed": 43
     # }
     # train_dqn_agent(k, StrategyAgent(k, adversarial_strategy), params_dqn)
 
@@ -132,7 +135,8 @@ if __name__ == "__main__":
         "update_interval": 20,
         "minibatch_size": 32,
         "hidden_size": 8,
-        "layer_n": 1
+        "layer_n": 1,
+        "seed": 43
     }
     train_gru_agent(k, StrategyAgent(k, adversarial_strategy), params_gru)
 
